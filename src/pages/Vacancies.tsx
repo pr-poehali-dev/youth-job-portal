@@ -197,10 +197,12 @@ const Vacancies = () => {
                 
                 <div className="flex items-center justify-between pt-4 border-t border-border">
                   <span className="text-lg font-bold text-primary">{job.salary}</span>
-                  <Button size="sm">
-                    Подробнее
-                    <Icon name="ArrowRight" size={14} className="ml-2" />
-                  </Button>
+                  <Link to={`/job/${job.id}`}>
+                    <Button size="sm">
+                      Подробнее
+                      <Icon name="ArrowRight" size={14} className="ml-2" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
             );
