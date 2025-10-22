@@ -46,6 +46,7 @@
 }
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "leaflet/dist/leaflet.css";
 
 @layer base {
   * {
@@ -61,4 +62,23 @@
       "Segoe UI",
       sans-serif;
   }
+}
+
+.leaflet-container {
+  background: hsl(var(--background));
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+.leaflet-popup-close-button {
+  color: hsl(var(--foreground)) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: hsl(var(--primary)) !important;
 }
