@@ -155,117 +155,80 @@ export default function Index() {
 
   if (currentView === 'home') {
     return (
-      <div className="min-h-screen bg-black">
-        <header className="border-b border-gray-800">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Icon name="Briefcase" size={28} className="text-primary" />
-              <h1 className="text-2xl font-bold text-white">Успех 14</h1>
-            </div>
-            <Button onClick={() => setCurrentView('auth')} variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-              Войти
-            </Button>
-          </div>
+      <div className="min-h-screen bg-black flex flex-col">
+        <header className="px-6 py-4 flex justify-between items-center">
+          <span className="text-blue-500 text-sm font-medium">Готово</span>
+          <button className="text-blue-500">
+            <Icon name="MoreVertical" size={24} />
+          </button>
         </header>
 
-        <main>
-          <section className="py-24 px-4">
-            <div className="container mx-auto text-center max-w-4xl">
-              <Badge className="mb-6 bg-primary/20 text-primary border-primary" variant="outline">
-                Для молодёжи 14-17 лет
-              </Badge>
-              <h2 className="text-5xl md:text-6xl font-bold mb-6 text-white">
-                Найди свою первую работу
-              </h2>
-              <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-                Платформа для трудоустройства подростков. Пройди профориентационный тест и получи персональные рекомендации вакансий
-              </p>
-              <div className="flex gap-4 justify-center flex-wrap">
-                <Button size="lg" onClick={() => setCurrentView('auth')} className="bg-primary hover:bg-primary/90 text-white text-lg px-8 py-6">
-                  Начать сейчас
-                  <Icon name="ArrowRight" size={20} className="ml-2" />
-                </Button>
-                <Button size="lg" variant="outline" className="border-gray-700 text-white hover:bg-gray-900 text-lg px-8 py-6">
-                  Узнать больше
-                </Button>
-              </div>
-            </div>
-          </section>
+        <main className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
+          <div className="w-32 h-32 rounded-full border-4 border-white flex items-center justify-center mb-12 relative">
+            <span className="text-white text-6xl font-light">У</span>
+            <div className="absolute -top-2 -left-2 w-8 h-8 bg-white rounded-full"></div>
+            <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full"></div>
+            <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-white rounded-full"></div>
+            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full"></div>
+          </div>
 
-          <section className="py-16 px-4 bg-gray-950">
-            <div className="container mx-auto max-w-6xl">
-              <h3 className="text-3xl font-bold text-center mb-12 text-white">Почему Успех 14?</h3>
-              <div className="grid md:grid-cols-3 gap-8">
-                <Card className="bg-card border-gray-800">
-                  <CardHeader>
-                    <Icon name="Shield" size={40} className="text-primary mb-4" />
-                    <CardTitle className="text-white">Безопасно</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Все вакансии проверены. Работа только для подростков 14-17 лет по закону РФ
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-                <Card className="bg-card border-gray-800">
-                  <CardHeader>
-                    <Icon name="Target" size={40} className="text-primary mb-4" />
-                    <CardTitle className="text-white">Профориентация</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Пройди тест и узнай, какая работа подходит именно тебе
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-                <Card className="bg-card border-gray-800">
-                  <CardHeader>
-                    <Icon name="Clock" size={40} className="text-primary mb-4" />
-                    <CardTitle className="text-white">Гибкий график</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Работа совместима с учёбой. Выбирай удобное время
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+          <div className="text-center mb-8">
+            <div className="flex items-start gap-8 mb-6">
+              <div>
+                <h1 className="text-5xl font-bold text-white mb-2">Успех</h1>
+                <h1 className="text-5xl font-bold text-white">14</h1>
+                <p className="text-white/80 text-base mt-4 leading-relaxed">
+                  Ваша<br />работа -<br />наша<br />забота
+                </p>
+              </div>
+              <div className="text-right mt-2">
+                <button onClick={() => setCurrentView('dashboard')} className="text-white/90 text-base mb-2 block hover:text-white">
+                  Главная
+                </button>
+                <button onClick={() => setCurrentView('auth')} className="text-white/90 text-base mb-2 block hover:text-white">
+                  Регистр
+                </button>
+                <Icon name="Calendar" size={28} className="text-white/90 ml-auto" />
               </div>
             </div>
-          </section>
+          </div>
 
-          <section className="py-16 px-4">
-            <div className="container mx-auto max-w-6xl">
-              <h3 className="text-3xl font-bold text-center mb-4 text-white">Актуальные вакансии</h3>
-              <p className="text-center text-gray-400 mb-12">Зарегистрируйся, чтобы откликнуться</p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockJobs.slice(0, 3).map(job => (
-                  <Card key={job.id} className="bg-card border-gray-800 hover:border-primary transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-white">{job.title}</CardTitle>
-                      <CardDescription className="text-gray-400">{job.company}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Icon name="MapPin" size={16} />
-                          {job.location}
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <Icon name="Clock" size={16} />
-                          {job.type}
-                        </div>
-                        <div className="flex items-center gap-2 text-primary font-semibold">
-                          <Icon name="Banknote" size={16} />
-                          {job.salary}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </section>
+          <div className="text-center space-y-6 max-w-md">
+            <h2 className="text-3xl font-bold text-white">
+              Работа для подростков<br />14-17 лет
+            </h2>
+            <p className="text-white/70 text-lg">
+              Безопасно. Легально. Перспективно
+            </p>
+            <Button 
+              size="lg" 
+              onClick={() => setCurrentView('auth')} 
+              className="bg-white text-black hover:bg-white/90 font-medium text-lg px-12 py-6 rounded-xl"
+            >
+              Найти работу
+            </Button>
+          </div>
         </main>
 
-        <footer className="border-t border-gray-800 py-8 px-4">
-          <div className="container mx-auto text-center text-gray-400">
-            <p>&copy; 2024 Успех 14. Платформа для трудоустройства молодёжи</p>
+        <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 px-6 py-4">
+          <div className="flex justify-around items-center max-w-md mx-auto">
+            <button onClick={() => setCurrentView('auth')} className="flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+                <Icon name="User" size={28} className="text-black" />
+              </div>
+            </button>
+            <button onClick={() => setCurrentView('dashboard')} className="flex flex-col items-center">
+              <div className="w-14 h-14 flex items-center justify-center">
+                <Icon name="Clipboard" size={32} className="text-white" />
+              </div>
+            </button>
+            <button onClick={() => setCurrentView('auth')} className="flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+                <Icon name="User" size={28} className="text-black" />
+              </div>
+            </button>
           </div>
-        </footer>
+        </nav>
       </div>
     );
   }
