@@ -2,17 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-
-interface Job {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  salary: string;
-  category: string;
-  coordinates: [number, number];
-}
+import { Job } from '@/data/jobs';
 
 interface VacancyMapProps {
   jobs: Job[];

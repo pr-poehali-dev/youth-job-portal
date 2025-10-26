@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
+import { allJobs } from '@/data/jobs';
 
 interface Message {
   id: number;
@@ -12,17 +13,9 @@ interface Message {
   timestamp: Date;
 }
 
-interface JobInfo {
-  id: number;
-  title: string;
-  company: string;
-}
-
-const jobsInfo: Record<number, JobInfo> = {
-  1: { id: 1, title: 'Помощник в кофейне', company: 'Coffee House' },
-  2: { id: 2, title: 'Курьер', company: 'Delivery Express' },
-  14: { id: 14, title: 'Стажер программист', company: 'IT StartUp' }
-};
+const jobsInfo = Object.fromEntries(
+  allJobs.map(job => [job.id, { id: job.id, title: job.title, company: job.company }])
+);
 
 const employerResponses = [
   'Здравствуйте! Спасибо за интерес к нашей вакансии. Расскажите немного о себе.',
