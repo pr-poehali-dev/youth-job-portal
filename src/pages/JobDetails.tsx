@@ -3,14 +3,40 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActivity } from '@/contexts/ActivityContext';
 import { jobsDetails } from '@/data/jobs';
+import { useEffect } from 'react';
 
 const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addView, toggleSaveJob, isJobSaved, addResponse, hasResponded } = useActivity();
   
   const job = id ? jobsDetails[Number(id)] : undefined;
+
+  useEffect(() => {
+    if (job && user) {
+      addView(job.id, job.title, job.company);
+    }
+  }, [job?.id, user]);
+
+  const handleResponse = () => {
+    if (job && user) {
+      addResponse(job.id, job.title, job.company);
+      navigate(`/chat/${job.id}`);
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleToggleSave = () => {
+    if (job && user) {
+      toggleSaveJob(job.id, job.title, job.company);
+    } else {
+      navigate('/login');
+    }
+  };
 
   if (!job) {
     return (
@@ -188,14 +214,19 @@ const JobDetails = () => {
               <Button 
                 size="lg" 
                 className="flex-1"
-                onClick={() => navigate(`/chat/${job.id}`)}
+                onClick={handleResponse}
+                disabled={hasResponded(job.id)}
               >
-                <Icon name="Send" size={18} className="mr-2" />
-                Откликнуться на вакансию
+                <Icon name={hasResponded(job.id) ? "Check" : "Send"} size={18} className="mr-2" />
+                {hasResponded(job.id) ? "Вы уже откликнулись" : "Откликнуться на вакансию"}
               </Button>
-              <Button size="lg" variant="outline">
-                <Icon name="Heart" size={18} className="mr-2" />
-                Сохранить
+              <Button 
+                size="lg" 
+                variant={isJobSaved(job.id) ? "default" : "outline"}
+                onClick={handleToggleSave}
+              >
+                <Icon name={isJobSaved(job.id) ? "HeartOff" : "Heart"} size={18} className="mr-2" />
+                {isJobSaved(job.id) ? "Удалить" : "Сохранить"}
               </Button>
             </div>
           </div>

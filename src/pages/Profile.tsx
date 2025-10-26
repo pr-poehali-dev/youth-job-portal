@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useActivity } from '@/contexts/ActivityContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +8,7 @@ import Icon from '@/components/ui/icon';
 
 const Profile = () => {
   const { user, logout } = useAuth();
+  const { activities, getStats } = useActivity();
   const navigate = useNavigate();
 
   if (!user) {
@@ -19,13 +21,49 @@ const Profile = () => {
     navigate('/');
   };
 
+  const statsData = getStats();
   const stats = [
-    { label: 'Откликов', value: '0', icon: 'Send', color: 'text-blue-500' },
-    { label: 'Сохранено', value: '0', icon: 'Heart', color: 'text-red-500' },
-    { label: 'Просмотрено', value: '0', icon: 'Eye', color: 'text-green-500' },
+    { label: 'Откликов', value: statsData.responses.toString(), icon: 'Send', color: 'text-blue-500' },
+    { label: 'Сохранено', value: statsData.saved.toString(), icon: 'Heart', color: 'text-red-500' },
+    { label: 'Просмотрено', value: statsData.views.toString(), icon: 'Eye', color: 'text-green-500' },
   ];
 
-  const recentActivity: any[] = [];
+  const getActionText = (action: string) => {
+    switch (action) {
+      case 'response': return 'Отклик на вакансию';
+      case 'save': return 'Сохранена вакансия';
+      case 'view': return 'Просмотрена вакансия';
+      default: return 'Действие';
+    }
+  };
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'response': return 'Send';
+      case 'save': return 'Heart';
+      case 'view': return 'Eye';
+      default: return 'Activity';
+    }
+  };
+
+  const formatTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 60) return `${minutes} ${minutes === 1 ? 'минуту' : 'минут'} назад`;
+    if (hours < 24) return `${hours} ${hours === 1 ? 'час' : hours < 5 ? 'часа' : 'часов'} назад`;
+    return `${days} ${days === 1 ? 'день' : days < 5 ? 'дня' : 'дней'} назад`;
+  };
+
+  const recentActivity = activities.slice(0, 5).map(a => ({
+    action: getActionText(a.action),
+    job: a.jobTitle,
+    company: a.company,
+    time: formatTime(a.timestamp),
+    icon: getActionIcon(a.action)
+  }));
 
   const skills = user.testResult 
     ? ['Коммуникабельность', 'Ответственность', 'Обучаемость', 'Пунктуальность']
