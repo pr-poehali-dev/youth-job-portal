@@ -20,16 +20,12 @@ const Profile = () => {
   };
 
   const stats = [
-    { label: 'Откликов', value: '3', icon: 'Send', color: 'text-blue-500' },
-    { label: 'Сохранено', value: '7', icon: 'Heart', color: 'text-red-500' },
-    { label: 'Просмотрено', value: '24', icon: 'Eye', color: 'text-green-500' },
+    { label: 'Откликов', value: '0', icon: 'Send', color: 'text-blue-500' },
+    { label: 'Сохранено', value: '0', icon: 'Heart', color: 'text-red-500' },
+    { label: 'Просмотрено', value: '0', icon: 'Eye', color: 'text-green-500' },
   ];
 
-  const recentActivity = [
-    { action: 'Отклик на вакансию', job: 'Стажер программист', company: 'IT StartUp', time: '2 часа назад', icon: 'Send' },
-    { action: 'Сохранена вакансия', job: 'SMM-помощник', company: 'Digital Agency', time: '5 часов назад', icon: 'Heart' },
-    { action: 'Просмотрена вакансия', job: 'Курьер', company: 'Delivery Express', time: '1 день назад', icon: 'Eye' },
-  ];
+  const recentActivity: any[] = [];
 
   const skills = user.testResult 
     ? ['Коммуникабельность', 'Ответственность', 'Обучаемость', 'Пунктуальность']
@@ -110,20 +106,35 @@ const Profile = () => {
                   <CardDescription>Ваши недавние действия на платформе</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivity.map((activity, index) => (
-                      <div key={index} className="flex items-start gap-4 p-3 rounded-lg hover:bg-secondary/50 transition">
-                        <div className="bg-primary/10 p-2 rounded-lg">
-                          <Icon name={activity.icon as any} size={20} className="text-primary" />
+                  {recentActivity.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentActivity.map((activity, index) => (
+                        <div key={index} className="flex items-start gap-4 p-3 rounded-lg hover:bg-secondary/50 transition">
+                          <div className="bg-primary/10 p-2 rounded-lg">
+                            <Icon name={activity.icon as any} size={20} className="text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold">{activity.action}</p>
+                            <p className="text-sm text-muted-foreground">{activity.job} • {activity.company}</p>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{activity.time}</span>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-semibold">{activity.action}</p>
-                          <p className="text-sm text-muted-foreground">{activity.job} • {activity.company}</p>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{activity.time}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="bg-secondary/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Icon name="Activity" size={32} className="text-muted-foreground" />
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-muted-foreground mb-4">Пока нет активности</p>
+                      <Link to="/vacancies">
+                        <Button size="sm">
+                          <Icon name="Briefcase" size={16} className="mr-2" />
+                          Просмотреть вакансии
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
