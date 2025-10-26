@@ -312,7 +312,11 @@ const JobDetails = () => {
             </div>
 
             <div className="flex gap-4 mt-8">
-              <Button size="lg" className="flex-1">
+              <Button 
+                size="lg" 
+                className="flex-1"
+                onClick={() => navigate(`/chat/${job.id}`)}
+              >
                 <Icon name="Send" size={18} className="mr-2" />
                 Откликнуться на вакансию
               </Button>
