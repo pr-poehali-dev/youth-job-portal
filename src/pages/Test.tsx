@@ -116,6 +116,10 @@ const Test = () => {
       { name: 'Работа с людьми', score: userAnswers[4] + userAnswers[9] },
     ];
 
+    // Отладка - выводим баллы всех категорий
+    console.log('Баллы по категориям:', categories);
+    console.log('Первые 10 ответов (шкала 1):', userAnswers.slice(0, 10));
+
     // Находим категорию с максимальным баллом
     let maxCategory = categories[0];
     categories.forEach(cat => {
@@ -123,6 +127,8 @@ const Test = () => {
         maxCategory = cat;
       }
     });
+
+    console.log('Выбранная категория:', maxCategory);
 
     // Интерпретация эмоциональной устойчивости
     let emotionalDescription = '';
