@@ -107,22 +107,20 @@ const Test = () => {
     const scale5 = userAnswers.slice(40, 50).reduce((a, b) => a + b, 0);
 
     // Определение ведущей профессиональной склонности (шкала 1)
-    const scale1Categories = [
-      { name: 'Творчество и искусство', indices: [0, 5] },
-      { name: 'Природа и экология', indices: [1, 6] },
-      { name: 'Работа с информацией', indices: [2, 7] },
-      { name: 'Техника и механизмы', indices: [3, 8] },
-      { name: 'Работа с людьми', indices: [4, 9] },
+    // Каждая категория - это сумма двух соответствующих вопросов
+    const categories = [
+      { name: 'Творчество и искусство', score: userAnswers[0] + userAnswers[5] },
+      { name: 'Природа и экология', score: userAnswers[1] + userAnswers[6] },
+      { name: 'Работа с информацией', score: userAnswers[2] + userAnswers[7] },
+      { name: 'Техника и механизмы', score: userAnswers[3] + userAnswers[8] },
+      { name: 'Работа с людьми', score: userAnswers[4] + userAnswers[9] },
     ];
 
-    let maxCategory = '';
-    let maxScore = 0;
-
-    scale1Categories.forEach(cat => {
-      const score = cat.indices.reduce((sum, idx) => sum + userAnswers[idx], 0);
-      if (score > maxScore) {
-        maxScore = score;
-        maxCategory = cat.name;
+    // Находим категорию с максимальным баллом
+    let maxCategory = categories[0];
+    categories.forEach(cat => {
+      if (cat.score > maxCategory.score) {
+        maxCategory = cat;
       }
     });
 
@@ -136,7 +134,7 @@ const Test = () => {
       emotionalDescription = 'Вы можете быть более чувствительны к стрессу, часто испытывать тревогу, раздражение или трудности с восстановлением. Важно уделять внимание развитию стратегий совладания со стрессом.';
     }
 
-    return `${maxCategory}|||${emotionalDescription}`;
+    return `${maxCategory.name}|||${emotionalDescription}`;
   };
 
   const getEmotionalDescription = (result: string): string => {
