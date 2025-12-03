@@ -127,12 +127,21 @@ const Test = () => {
     });
 
     // Интерпретация эмоциональной устойчивости
-    let emotionalStatus = '';
-    if (scale3 >= 40) emotionalStatus = 'Высокая устойчивость';
-    else if (scale3 >= 30) emotionalStatus = 'Средняя устойчивость';
-    else emotionalStatus = 'Требуется развитие';
+    let emotionalDescription = '';
+    if (scale3 >= 40) {
+      emotionalDescription = 'Вы хорошо справляетесь со стрессом, умеете контролировать эмоции и быстро восстанавливаетесь после трудностей. Это ценное качество для любой профессии, особенно для тех, где высока ответственность и динамичность.';
+    } else if (scale3 >= 30) {
+      emotionalDescription = 'Вы обычно справляетесь со стрессом, но можете испытывать трудности в очень сложных или длительных стрессовых ситуациях. Есть потенциал для развития навыков саморегуляции.';
+    } else {
+      emotionalDescription = 'Вы можете быть более чувствительны к стрессу, часто испытывать тревогу, раздражение или трудности с восстановлением. Важно уделять внимание развитию стратегий совладания со стрессом.';
+    }
 
-    return `${maxCategory} (${emotionalStatus})`;
+    return `${maxCategory}|||${emotionalDescription}`;
+  };
+
+  const getEmotionalDescription = (result: string): string => {
+    const parts = result.split('|||');
+    return parts[1] || '';
   };
 
   const getRecommendations = (result: string): string[] => {
@@ -170,12 +179,16 @@ const Test = () => {
     };
 
     // Извлекаем основную категорию из результата
-    const mainCategory = Object.keys(recommendations).find(key => result.includes(key));
+    const parts = result.split('|||');
+    const mainCategory = Object.keys(recommendations).find(key => parts[0].includes(key));
     return mainCategory ? recommendations[mainCategory] : [];
   };
 
   if (showResult) {
     const result = user.testResult || '';
+    const parts = result.split('|||');
+    const mainResult = parts[0] || result;
+    const emotionalText = getEmotionalDescription(result);
     const recommendations = getRecommendations(result);
 
     return (
@@ -197,8 +210,18 @@ const Test = () => {
               
               <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg mb-6 border border-primary/20">
                 <p className="text-muted-foreground mb-2">Ваш профессиональный профиль:</p>
-                <p className="text-2xl font-bold text-primary">{result}</p>
+                <p className="text-2xl font-bold text-primary mb-4">{mainResult}</p>
               </div>
+
+              {emotionalText && (
+                <div className="text-left mb-6 bg-blue-500/5 p-6 rounded-lg border border-blue-500/20">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2 text-lg">
+                    <Icon name="Heart" size={22} className="text-blue-500" />
+                    Эмоциональная устойчивость:
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{emotionalText}</p>
+                </div>
+              )}
 
               <div className="text-left mb-6 bg-secondary/30 p-6 rounded-lg">
                 <h3 className="font-semibold mb-4 flex items-center gap-2 text-lg">
