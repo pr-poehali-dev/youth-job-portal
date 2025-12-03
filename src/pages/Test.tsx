@@ -116,19 +116,14 @@ const Test = () => {
       { name: 'Работа с людьми', score: userAnswers[4] + userAnswers[9] },
     ];
 
-    // Отладка - выводим баллы всех категорий
-    console.log('Баллы по категориям:', categories);
-    console.log('Первые 10 ответов (шкала 1):', userAnswers.slice(0, 10));
-
-    // Находим категорию с максимальным баллом
-    let maxCategory = categories[0];
-    categories.forEach(cat => {
-      if (cat.score > maxCategory.score) {
-        maxCategory = cat;
-      }
-    });
-
-    console.log('Выбранная категория:', maxCategory);
+    // Находим максимальный балл
+    const maxScore = Math.max(...categories.map(c => c.score));
+    
+    // Находим все категории с максимальным баллом
+    const maxCategories = categories.filter(c => c.score === maxScore);
+    
+    // Если несколько категорий с одинаковым баллом, выбираем случайную
+    const maxCategory = maxCategories[Math.floor(Math.random() * maxCategories.length)];
 
     // Интерпретация эмоциональной устойчивости
     let emotionalDescription = '';
