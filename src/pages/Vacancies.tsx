@@ -12,17 +12,21 @@ import { allJobs } from '@/data/jobs';
 const Vacancies = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
 
   const filteredJobs = allJobs.filter((job) => {
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = !selectedType || job.type === selectedType;
     
-    return matchesSearch;
+    return matchesSearch && matchesType;
   });
 
   const recommendedJobs = user?.testResult 
     ? allJobs.filter(job => job.category === user.testResult)
     : [];
+
+  const types = Array.from(new Set(allJobs.map(job => job.type)));
 
   return (
     <div className="min-h-screen">
@@ -90,6 +94,26 @@ const Vacancies = () => {
                 className="pl-10"
               />
             </div>
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant={selectedType === null ? "default" : "outline"}
+              onClick={() => setSelectedType(null)}
+              size="sm"
+            >
+              Все
+            </Button>
+            {types.map((type) => (
+              <Button
+                key={type}
+                variant={selectedType === type ? "default" : "outline"}
+                onClick={() => setSelectedType(type)}
+                size="sm"
+              >
+                {type}
+              </Button>
+            ))}
           </div>
         </div>
 
