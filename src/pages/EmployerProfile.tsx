@@ -21,15 +21,22 @@ const EmployerProfile = () => {
 
   useEffect(() => {
     const loadData = () => {
+      if (!user) return;
+
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const usersList = users.filter((u: any) => u.role !== 'employer');
       setAllUsers(usersList);
+
+      const employerJobs = allJobs.filter(job => job.employerId === user.id);
+      const employerJobIds = employerJobs.map(job => job.id);
 
       const allResponses: ResponseData[] = [];
       users.forEach((u: any) => {
         if (u.role !== 'employer') {
           const userActivities = JSON.parse(localStorage.getItem(`activities_${u.id}`) || '[]');
-          const userResponses = userActivities.filter((a: any) => a.action === 'response');
+          const userResponses = userActivities.filter((a: any) => 
+            a.action === 'response' && employerJobIds.includes(a.jobId)
+          );
           
           userResponses.forEach((r: any) => {
             allResponses.push({
@@ -51,15 +58,18 @@ const EmployerProfile = () => {
       setResponses(allResponses);
 
       const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
-      allInterviews.sort((a: InterviewData, b: InterviewData) => b.timestamp - a.timestamp);
-      setInterviews(allInterviews);
+      const employerInterviews = allInterviews.filter((interview: InterviewData) => 
+        employerJobIds.includes(interview.jobId)
+      );
+      employerInterviews.sort((a: InterviewData, b: InterviewData) => b.timestamp - a.timestamp);
+      setInterviews(employerInterviews);
     };
 
     loadData();
     
     const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!user || user.role !== 'employer') {
@@ -95,6 +105,8 @@ const EmployerProfile = () => {
     return acc;
   }, {} as Record<number, ResponseData[]>);
 
+  const employerJobs = allJobs.filter(job => job.employerId === user.id);
+
   return (
     <div className="min-h-screen bg-secondary/10">
       <header className="border-b border-border bg-card sticky top-0 z-50">
@@ -121,7 +133,7 @@ const EmployerProfile = () => {
             responsesCount={responses.length}
             interviewsCount={interviews.length}
             candidatesCount={allUsers.length}
-            vacanciesCount={allJobs.length}
+            vacanciesCount={employerJobs.length}
           />
 
           <Tabs defaultValue="responses" className="w-full">
@@ -158,7 +170,7 @@ const EmployerProfile = () => {
 
             <TabsContent value="vacancies" className="mt-6">
               <VacanciesTab 
-                allJobs={allJobs}
+                allJobs={employerJobs}
                 responsesByJob={responsesByJob}
               />
             </TabsContent>
