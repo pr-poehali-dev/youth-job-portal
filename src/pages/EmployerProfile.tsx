@@ -140,6 +140,7 @@ const EmployerProfile = () => {
             interviewsCount={interviews.length}
             candidatesCount={allUsers.length}
             vacanciesCount={employerJobs.length}
+            userEmail={user.email}
           />
 
           <Tabs defaultValue="responses" className="w-full">

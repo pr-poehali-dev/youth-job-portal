@@ -6,11 +6,14 @@ interface EmployerStatsProps {
   interviewsCount: number;
   candidatesCount: number;
   vacanciesCount: number;
+  userEmail: string;
 }
 
-const EmployerStats = ({ responsesCount, interviewsCount, candidatesCount, vacanciesCount }: EmployerStatsProps) => {
+const EmployerStats = ({ responsesCount, interviewsCount, candidatesCount, vacanciesCount, userEmail }: EmployerStatsProps) => {
+  const showCandidates = userEmail === 'mininkonstantin@gmail.com';
+  
   return (
-    <div className="grid md:grid-cols-4 gap-4 mb-6">
+    <div className={`grid ${showCandidates ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-6`}>
       <Card>
         <CardContent className="p-6 text-center">
           <Icon name="Send" size={32} className="mx-auto mb-2 text-blue-500" />
@@ -25,13 +28,15 @@ const EmployerStats = ({ responsesCount, interviewsCount, candidatesCount, vacan
           <div className="text-muted-foreground text-sm">Собеседований</div>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className="p-6 text-center">
-          <Icon name="Users" size={32} className="mx-auto mb-2 text-green-500" />
-          <div className="text-3xl font-bold">{candidatesCount}</div>
-          <div className="text-muted-foreground text-sm">Кандидатов в базе</div>
-        </CardContent>
-      </Card>
+      {showCandidates && (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <Icon name="Users" size={32} className="mx-auto mb-2 text-green-500" />
+            <div className="text-3xl font-bold">{candidatesCount}</div>
+            <div className="text-muted-foreground text-sm">Кандидатов в базе</div>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardContent className="p-6 text-center">
           <Icon name="Briefcase" size={32} className="mx-auto mb-2 text-orange-500" />
