@@ -35,9 +35,13 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       if (storedActivities) {
         setActivities(JSON.parse(storedActivities));
+      } else {
+        setActivities([]);
       }
       if (storedSaved) {
         setSavedJobs(JSON.parse(storedSaved));
+      } else {
+        setSavedJobs([]);
       }
     } else {
       setActivities([]);
