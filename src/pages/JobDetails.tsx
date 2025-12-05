@@ -25,7 +25,7 @@ const JobDetails = () => {
     if (job && user) {
       addResponse(job.id, job.title, job.company);
       
-      const chatKey = `chat_${job.id}`;
+      const chatKey = `chat_${job.id}_${user.id}`;
       const existingChat = localStorage.getItem(chatKey);
       
       if (!existingChat) {
@@ -40,7 +40,7 @@ const JobDetails = () => {
         localStorage.setItem(chatKey, JSON.stringify([initialMessage]));
       }
       
-      navigate(`/chat/${job.id}`);
+      navigate(`/chat/${job.id}?userId=${user.id}`);
     } else {
       navigate('/login');
     }

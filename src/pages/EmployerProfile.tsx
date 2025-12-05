@@ -16,6 +16,8 @@ interface ResponseData {
   jobId: number;
   jobTitle: string;
   timestamp: number;
+  testScore?: number;
+  testDate?: number;
 }
 
 interface InterviewData {
@@ -56,7 +58,9 @@ const EmployerProfile = () => {
               userAge: u.age,
               jobId: r.jobId,
               jobTitle: r.jobTitle,
-              timestamp: r.timestamp
+              timestamp: r.timestamp,
+              testScore: u.testScore,
+              testDate: u.testDate
             });
           });
         }
@@ -232,6 +236,11 @@ const EmployerProfile = () => {
                             <div className="flex items-center gap-2 mb-2">
                               <span className="font-semibold text-lg">{response.userName}</span>
                               <Badge variant="secondary">{response.userAge} лет</Badge>
+                              {response.testScore !== undefined && (
+                                <Badge variant={response.testScore >= 80 ? "default" : response.testScore >= 60 ? "secondary" : "outline"}>
+                                  Тест: {response.testScore}%
+                                </Badge>
+                              )}
                             </div>
                             <div className="flex items-center gap-2 mb-2">
                               <Icon name="Mail" size={14} className="text-muted-foreground" />
@@ -241,12 +250,17 @@ const EmployerProfile = () => {
                               <span className="text-muted-foreground">Вакансия:</span>{' '}
                               <span className="font-medium">{response.jobTitle}</span>
                             </p>
+                            {response.testDate && (
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Тест пройден: {new Date(response.testDate).toLocaleDateString('ru-RU')}
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground">{formatTime(response.timestamp)}</p>
                           </div>
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => navigate(`/chat/${response.jobId}`)}
+                            onClick={() => navigate(`/chat/${response.jobId}?userId=${response.userId}`)}
                           >
                             <Icon name="MessageSquare" size={16} className="mr-2" />
                             Чат
@@ -312,7 +326,7 @@ const EmployerProfile = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => navigate(`/chat/${interview.jobId}`)}
+                            onClick={() => navigate(`/chat/${interview.jobId}?userId=${interview.userId}`)}
                           >
                             <Icon name="MessageSquare" size={16} className="mr-2" />
                             Чат

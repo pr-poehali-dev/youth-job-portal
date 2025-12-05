@@ -33,7 +33,12 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const jobInfo = id ? jobsInfo[Number(id)] : null;
-  const chatKey = `chat_${id}`;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const otherUserId = urlParams.get('userId');
+  
+  const chatPartnerId = user?.role === 'employer' ? otherUserId : user?.id;
+  const chatKey = `chat_${id}_${chatPartnerId}`;
 
   useEffect(() => {
     if (!user) {
@@ -79,10 +84,8 @@ const Chat = () => {
   const scheduleInterview = () => {
     if (!interviewDate || !interviewTime || !user) return;
 
-    const responseUserId = messages.find(m => m.senderRole === 'user')?.senderId;
-    const responseUserName = messages.find(m => m.senderRole === 'user')?.senderName;
     const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const responseUser = users.find((u: any) => u.id === responseUserId);
+    const responseUser = users.find((u: any) => u.id === chatPartnerId);
 
     if (!responseUser) return;
 
@@ -156,6 +159,9 @@ const Chat = () => {
     );
   }
 
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const chatPartner = users.find((u: any) => u.id === chatPartnerId);
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-border bg-card sticky top-0 z-50">
@@ -170,7 +176,9 @@ const Chat = () => {
               <span className="hidden sm:inline">Назад</span>
             </Button>
             <div className="flex-1">
-              <h1 className="font-bold text-lg">{jobInfo.company}</h1>
+              <h1 className="font-bold text-lg">
+                {user.role === 'employer' && chatPartner ? chatPartner.name : jobInfo.company}
+              </h1>
               <p className="text-sm text-muted-foreground">{jobInfo.title}</p>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
