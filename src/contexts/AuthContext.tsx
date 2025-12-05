@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   age: number;
+  phone?: string;
   completedTest: boolean;
   testResult?: string;
   role: 'user' | 'employer';
@@ -16,7 +17,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string, age: number) => Promise<boolean>;
+  register: (name: string, email: string, password: string, age: number, phone?: string) => Promise<boolean>;
   registerEmployer: (name: string, email: string, password: string, companyName: string) => Promise<boolean>;
   logout: () => void;
   updateTestResult: (result: string) => void;
@@ -80,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const register = async (name: string, email: string, password: string, age: number): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<boolean> => {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     
     if (users.some((u: any) => u.email === email)) {
@@ -93,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
       age,
+      phone,
       completedTest: false,
       role: 'user' as const,
       subscription: null

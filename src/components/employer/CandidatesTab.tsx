@@ -56,7 +56,7 @@ const CandidatesTab = ({ allUsers, userSubscription }: CandidatesTabProps) => {
                     Профиль
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Профиль кандидата</DialogTitle>
                     <DialogDescription>
@@ -64,9 +64,20 @@ const CandidatesTab = ({ allUsers, userSubscription }: CandidatesTabProps) => {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Контакты:</p>
-                      <p className="font-medium">{candidate.email}</p>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Контакты:</p>
+                      <div className="bg-secondary/30 p-3 rounded-lg space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Icon name="Mail" size={16} className="text-primary" />
+                          <p className="font-medium">{candidate.email}</p>
+                        </div>
+                        {candidate.phone && (
+                          <div className="flex items-center gap-2">
+                            <Icon name="Phone" size={16} className="text-primary" />
+                            <p className="font-medium">{candidate.phone}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     {candidate.completedTest && candidate.testResult ? (

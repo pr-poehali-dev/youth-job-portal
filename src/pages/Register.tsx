@@ -11,6 +11,7 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Register = () => {
       return;
     }
 
-    const success = await register(name, email, password, ageNum);
+    const success = await register(name, email, password, ageNum, phone);
     if (success) {
       navigate('/user-subscription');
     } else {
@@ -91,6 +92,18 @@ const Register = () => {
                 min={14}
                 max={17}
                 placeholder="14-17 лет"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="phone">Номер телефона</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                placeholder="+7 (900) 123-45-67"
               />
             </div>
 
