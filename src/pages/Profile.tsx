@@ -137,16 +137,22 @@ const Profile = () => {
                           <span>Красноярск</span>
                         </div>
                         {user.subscription === 'premium' && (
-                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                             <Icon name="Crown" size={14} className="mr-1" />
-                            Премиум подписка
+                            Премиум (150₽)
+                          </Badge>
+                        )}
+                        {user.subscription === 'premium_plus' && (
+                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                            <Icon name="Sparkles" size={14} className="mr-1" />
+                            Премиум Плюс (249₽)
                           </Badge>
                         )}
                       </div>
                       {!user.subscription && (
                         <Button onClick={() => navigate('/user-subscription')} variant="outline" size="sm">
                           <Icon name="Crown" size={16} className="mr-2" />
-                          Оформить премиум за 150₽
+                          Оформить подписку
                         </Button>
                       )}
                       {user.completedTest && user.testResult && (

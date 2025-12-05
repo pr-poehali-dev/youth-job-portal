@@ -67,7 +67,7 @@ const JobDetails = () => {
     );
   }
 
-  if (job.isPremium && (!user || user.subscription !== 'premium')) {
+  if (job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">

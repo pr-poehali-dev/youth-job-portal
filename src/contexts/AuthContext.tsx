@@ -8,7 +8,7 @@ interface User {
   completedTest: boolean;
   testResult?: string;
   role: 'user' | 'employer';
-  subscription?: 'basic' | 'premium' | null;
+  subscription?: 'basic' | 'premium' | 'premium_plus' | null;
   subscriptionExpiry?: string;
   companyName?: string;
 }
@@ -20,7 +20,7 @@ interface AuthContextType {
   registerEmployer: (name: string, email: string, password: string, companyName: string) => Promise<boolean>;
   logout: () => void;
   updateTestResult: (result: string) => void;
-  updateSubscription: (subscription: 'basic' | 'premium' | null, expiryDate?: string) => void;
+  updateSubscription: (subscription: 'basic' | 'premium' | 'premium_plus' | null, expiryDate?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateSubscription = (subscription: 'basic' | 'premium' | null, expiryDate?: string) => {
+  const updateSubscription = (subscription: 'basic' | 'premium' | 'premium_plus' | null, expiryDate?: string) => {
     if (user) {
       const updatedUser = { ...user, subscription, subscriptionExpiry: expiryDate };
       setUser(updatedUser);
