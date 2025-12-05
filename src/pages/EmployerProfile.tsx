@@ -29,9 +29,7 @@ const EmployerProfile = () => {
       setAllJobs(loadedJobs);
 
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const usersList = user.email === 'mininkonstantin@gmail.com' 
-        ? users.filter((u: any) => u.role !== 'employer')
-        : [];
+      const usersList = users.filter((u: any) => u.role !== 'employer');
       setAllUsers(usersList);
 
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
@@ -149,7 +147,7 @@ const EmployerProfile = () => {
           />
 
           <Tabs defaultValue="responses" className="w-full">
-            <TabsList className={`grid w-full ${user.email === 'mininkonstantin@gmail.com' ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="responses">
                 <Icon name="Send" size={16} className="mr-2" />
                 Отклики
@@ -162,12 +160,10 @@ const EmployerProfile = () => {
                 <Icon name="Briefcase" size={16} className="mr-2" />
                 Вакансии
               </TabsTrigger>
-              {user.email === 'mininkonstantin@gmail.com' && (
-                <TabsTrigger value="candidates">
-                  <Icon name="Users" size={16} className="mr-2" />
-                  База кандидатов
-                </TabsTrigger>
-              )}
+              <TabsTrigger value="candidates">
+                <Icon name="Users" size={16} className="mr-2" />
+                База кандидатов
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="responses" className="mt-6">
@@ -189,11 +185,9 @@ const EmployerProfile = () => {
               />
             </TabsContent>
 
-            {user.email === 'mininkonstantin@gmail.com' && (
-              <TabsContent value="candidates" className="mt-6">
-                <CandidatesTab allUsers={allUsers} />
-              </TabsContent>
-            )}
+            <TabsContent value="candidates" className="mt-6">
+              <CandidatesTab allUsers={allUsers} userSubscription={user.subscription} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
