@@ -31,8 +31,18 @@ const VacanciesTab = ({ allJobs, responsesByJob }: VacanciesTabProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {allJobs.map((job) => {
+        {allJobs.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Icon name="Briefcase" size={48} className="mx-auto mb-4 opacity-50" />
+            <p className="mb-4">У вас пока нет активных вакансий</p>
+            <Button onClick={() => navigate('/create-job')}>
+              <Icon name="Plus" size={16} className="mr-2" />
+              Создать первую вакансию
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {allJobs.map((job) => {
             const jobResponses = responsesByJob[job.id] || [];
             return (
               <div key={job.id} className="p-4 rounded-lg border border-border hover:bg-secondary/50 transition">
@@ -77,7 +87,8 @@ const VacanciesTab = ({ allJobs, responsesByJob }: VacanciesTabProps) => {
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

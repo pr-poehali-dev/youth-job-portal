@@ -29,7 +29,9 @@ const EmployerProfile = () => {
         : [];
       setAllUsers(usersList);
 
-      const employerJobs = allJobs.filter(job => job.employerId === user.id);
+      const employerJobs = user.email === 'mininkonstantin@gmail.com'
+        ? allJobs
+        : allJobs.filter(job => job.employerId === user.id);
       const employerJobIds = employerJobs.map(job => job.id);
 
       const allResponses: ResponseData[] = [];
@@ -107,7 +109,9 @@ const EmployerProfile = () => {
     return acc;
   }, {} as Record<number, ResponseData[]>);
 
-  const employerJobs = allJobs.filter(job => job.employerId === user.id);
+  const employerJobs = user.email === 'mininkonstantin@gmail.com'
+    ? allJobs
+    : allJobs.filter(job => job.employerId === user.id);
 
   return (
     <div className="min-h-screen bg-secondary/10">

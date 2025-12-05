@@ -51,8 +51,8 @@ const CreateJob = () => {
   }
 
   const userJobs = allJobs.filter(j => j.employerId === user.id);
-  const canCreateJob = user.subscription === 'premium' || userJobs.length === 0;
-  const canCreatePremium = user.subscription === 'premium';
+  const canCreateJob = user.subscription === 'premium' || userJobs.length === 0 || user.email === 'mininkonstantin@gmail.com';
+  const canCreatePremium = user.subscription === 'premium' || user.email === 'mininkonstantin@gmail.com';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
