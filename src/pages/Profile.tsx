@@ -74,10 +74,16 @@ const Profile = () => {
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold">Успех 14</Link>
-          <Button onClick={handleLogout} variant="outline" size="sm">
-            <Icon name="LogOut" size={16} className="mr-2" />
-            Выйти
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/login')} variant="outline" size="sm">
+              <Icon name="UserPlus" size={16} className="mr-2" />
+              Сменить аккаунт
+            </Button>
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              <Icon name="LogOut" size={16} className="mr-2" />
+              Выйти
+            </Button>
+          </div>
         </div>
       </header>
 
