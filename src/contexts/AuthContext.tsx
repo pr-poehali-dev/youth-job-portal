@@ -29,8 +29,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(JSON.parse(storedUser));
     }
     
-    // Создаём аккаунт работодателя если его нет
     const users = JSON.parse(localStorage.getItem('users') || '[]');
+    let needsUpdate = false;
+    
+    // Создаём аккаунт работодателя если его нет
     const employerExists = users.some((u: any) => u.email === 'mininkonstantin@gmail.com');
     
     if (!employerExists) {
@@ -44,6 +46,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'employer'
       };
       users.push(employerUser);
+      needsUpdate = true;
+    }
+    
+    // Добавляем role для старых пользователей
+    users.forEach((u: any) => {
+      if (!u.role) {
+        u.role = u.email === 'mininkonstantin@gmail.com' ? 'employer' : 'user';
+        needsUpdate = true;
+      }
+    });
+    
+    if (needsUpdate) {
       localStorage.setItem('users', JSON.stringify(users));
     }
   }, []);
