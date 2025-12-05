@@ -9,52 +9,31 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 
 interface Message {
-  id: number;
+  id: string;
   text: string;
-  sender: 'user' | 'employer';
-  timestamp: Date;
+  senderId: string;
+  senderName: string;
+  senderRole: 'user' | 'employer';
+  timestamp: number;
 }
 
 const jobsInfo = Object.fromEntries(
   allJobs.map(job => [job.id, { id: job.id, title: job.title, company: job.company }])
 );
 
-const employerResponses = [
-  'Здравствуйте! Спасибо за интерес к нашей вакансии. Расскажите немного о себе.',
-  'Отлично! У вас есть опыт работы в этой сфере?',
-  'Какой график вам подходит?',
-  'Когда вы могли бы приступить к работе?',
-  'Отлично! Давайте назначим время для собеседования. Вам удобно в будни или выходные?',
-  'Отличный выбор! Я запишу вас на собеседование. Мы свяжемся с вами в ближайшее время.'
-];
-
 const Chat = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: 'Здравствуйте! Я увидел вашу вакансию и хотел бы откликнуться.',
-      sender: 'user',
-      timestamp: new Date()
-    },
-    {
-      id: 2,
-      text: 'Здравствуйте! Рады вашему интересу. Расскажите, пожалуйста, немного о себе.',
-      sender: 'employer',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewTime, setInterviewTime] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const responseIndexRef = useRef(2);
 
   const jobInfo = id ? jobsInfo[Number(id)] : null;
+  const chatKey = `chat_${id}`;
 
   useEffect(() => {
     if (!user) {
@@ -63,78 +42,106 @@ const Chat = () => {
   }, [user, navigate]);
 
   useEffect(() => {
+    const loadMessages = () => {
+      const savedMessages = localStorage.getItem(chatKey);
+      if (savedMessages) {
+        setMessages(JSON.parse(savedMessages));
+      }
+    };
+
+    loadMessages();
+    const interval = setInterval(loadMessages, 1000);
+    return () => clearInterval(interval);
+  }, [chatKey]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const sendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !user) return;
 
     const newMessage: Message = {
-      id: messages.length + 1,
+      id: `${Date.now()}_${user.id}`,
       text: inputValue,
-      sender: 'user',
-      timestamp: new Date()
+      senderId: user.id,
+      senderName: user.name,
+      senderRole: user.role === 'employer' ? 'employer' : 'user',
+      timestamp: Date.now()
     };
 
-    setMessages([...messages, newMessage]);
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
     setInputValue('');
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const responseIndex = Math.min(
-        responseIndexRef.current,
-        employerResponses.length - 1
-      );
-      
-      const employerMessage: Message = {
-        id: messages.length + 2,
-        text: employerResponses[responseIndex],
-        sender: 'employer',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, employerMessage]);
-      setIsTyping(false);
-      responseIndexRef.current = Math.min(
-        responseIndexRef.current + 1,
-        employerResponses.length - 1
-      );
-    }, 1500 + Math.random() * 1000);
   };
 
   const scheduleInterview = () => {
     if (!interviewDate || !interviewTime || !user) return;
 
-    const interviewKey = `interview_${user.id}_${id}`;
+    const responseUserId = messages.find(m => m.senderRole === 'user')?.senderId;
+    const responseUserName = messages.find(m => m.senderRole === 'user')?.senderName;
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const responseUser = users.find((u: any) => u.id === responseUserId);
+
+    if (!responseUser) return;
+
     const interviewData = {
-      userId: user.id,
-      userName: user.name,
-      userEmail: user.email,
+      userId: responseUser.id,
+      userName: responseUser.name,
+      userEmail: responseUser.email,
       jobId: Number(id),
       jobTitle: jobInfo?.title || '',
       date: interviewDate,
       time: interviewTime,
+      status: 'pending',
       timestamp: Date.now()
     };
-
-    localStorage.setItem(interviewKey, JSON.stringify(interviewData));
 
     const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
     allInterviews.push(interviewData);
     localStorage.setItem('all_interviews', JSON.stringify(allInterviews));
 
     const confirmMessage: Message = {
-      id: messages.length + 1,
-      text: `Отлично! Я записал вас на собеседование ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}. Ждём вас!`,
-      sender: 'employer',
-      timestamp: new Date()
+      id: `${Date.now()}_${user.id}`,
+      text: `📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`,
+      senderId: user.id,
+      senderName: user.name,
+      senderRole: 'employer',
+      timestamp: Date.now()
     };
 
-    setMessages(prev => [...prev, confirmMessage]);
+    const updatedMessages = [...messages, confirmMessage];
+    setMessages(updatedMessages);
+    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+
     setIsDialogOpen(false);
     setInterviewDate('');
     setInterviewTime('');
   };
+
+  const requestInterview = () => {
+    if (!interviewDate || !interviewTime || !user) return;
+
+    const requestMessage: Message = {
+      id: `${Date.now()}_${user.id}`,
+      text: `🙋 Прошу назначить собеседование на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`,
+      senderId: user.id,
+      senderName: user.name,
+      senderRole: 'user',
+      timestamp: Date.now()
+    };
+
+    const updatedMessages = [...messages, requestMessage];
+    setMessages(updatedMessages);
+    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+
+    setIsDialogOpen(false);
+    setInterviewDate('');
+    setInterviewTime('');
+  };
+
+  if (!user) return null;
 
   if (!jobInfo) {
     return (
@@ -156,63 +163,68 @@ const Chat = () => {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              onClick={() => navigate('/vacancies')}
+              onClick={() => navigate(user.role === 'employer' ? '/employer-profile' : '/vacancies')}
               className="flex items-center gap-2"
             >
               <Icon name="ArrowLeft" size={20} />
-              <span className="hidden sm:inline">Назад к вакансиям</span>
+              <span className="hidden sm:inline">Назад</span>
             </Button>
             <div className="flex-1">
               <h1 className="font-bold text-lg">{jobInfo.company}</h1>
               <p className="text-sm text-muted-foreground">{jobInfo.title}</p>
             </div>
-            {user?.role === 'employer' && (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="default" size="sm">
-                    <Icon name="Calendar" size={16} className="mr-2" />
-                    Назначить собеседование
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Назначить собеседование</DialogTitle>
-                    <DialogDescription>
-                      Укажите дату и время для встречи с кандидатом
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Дата</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={interviewDate}
-                        onChange={(e) => setInterviewDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="time">Время</Label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={interviewTime}
-                        onChange={(e) => setInterviewTime(e.target.value)}
-                      />
-                    </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="default" size="sm">
+                  <Icon name="Calendar" size={16} className="mr-2" />
+                  {user.role === 'employer' ? 'Назначить собеседование' : 'Запросить собеседование'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {user.role === 'employer' ? 'Назначить собеседование' : 'Запросить собеседование'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {user.role === 'employer' 
+                      ? 'Укажите дату и время для встречи с кандидатом'
+                      : 'Предложите удобную дату и время для собеседования'}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Дата</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={interviewDate}
+                      onChange={(e) => setInterviewDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Отмена
-                    </Button>
-                    <Button onClick={scheduleInterview} disabled={!interviewDate || !interviewTime}>
-                      Назначить
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Время</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={interviewTime}
+                      onChange={(e) => setInterviewTime(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Отмена
+                  </Button>
+                  <Button 
+                    onClick={user.role === 'employer' ? scheduleInterview : requestInterview} 
+                    disabled={!interviewDate || !interviewTime}
+                  >
+                    {user.role === 'employer' ? 'Назначить' : 'Отправить запрос'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Link to="/profile">
               <Button variant="ghost" size="icon">
                 <Icon name="User" size={20} />
@@ -224,45 +236,51 @@ const Chat = () => {
 
       <div className="flex-1 overflow-y-auto bg-secondary/10">
         <div className="container max-w-4xl mx-auto px-4 py-6 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                  message.sender === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border'
-                }`}
-              >
-                <p className="text-sm">{message.text}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    message.sender === 'user'
-                      ? 'text-primary-foreground/70'
-                      : 'text-muted-foreground'
-                  }`}
+          {messages.length === 0 ? (
+            <div className="text-center py-12">
+              <Icon name="MessageSquare" size={48} className="mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-2">Чат пуст</p>
+              <p className="text-sm text-muted-foreground">
+                Отправьте первое сообщение чтобы начать диалог
+              </p>
+            </div>
+          ) : (
+            messages.map((message) => {
+              const isMyMessage = message.senderId === user.id;
+              return (
+                <div
+                  key={message.id}
+                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
                 >
-                  {message.timestamp.toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-            </div>
-          ))}
-          
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-card border border-border rounded-2xl px-4 py-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div
+                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                      isMyMessage
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card border border-border'
+                    }`}
+                  >
+                    {!isMyMessage && (
+                      <p className="text-xs font-medium mb-1 opacity-70">
+                        {message.senderName}
+                      </p>
+                    )}
+                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                    <p
+                      className={`text-xs mt-1 ${
+                        isMyMessage
+                          ? 'text-primary-foreground/70'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      {new Date(message.timestamp).toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })
           )}
           
           <div ref={messagesEndRef} />

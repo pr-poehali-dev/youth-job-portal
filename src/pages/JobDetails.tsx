@@ -24,6 +24,22 @@ const JobDetails = () => {
   const handleResponse = () => {
     if (job && user) {
       addResponse(job.id, job.title, job.company);
+      
+      const chatKey = `chat_${job.id}`;
+      const existingChat = localStorage.getItem(chatKey);
+      
+      if (!existingChat) {
+        const initialMessage = {
+          id: `${Date.now()}_${user.id}`,
+          text: 'Здравствуйте! Я увидел вашу вакансию и хотел бы откликнуться.',
+          senderId: user.id,
+          senderName: user.name,
+          senderRole: 'user',
+          timestamp: Date.now()
+        };
+        localStorage.setItem(chatKey, JSON.stringify([initialMessage]));
+      }
+      
       navigate(`/chat/${job.id}`);
     } else {
       navigate('/login');
