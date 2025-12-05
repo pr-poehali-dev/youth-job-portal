@@ -254,11 +254,19 @@ const Profile = () => {
                       </Button>
                     </Link>
                   )}
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate('/my-chats')}
+                  >
                     <Icon name="MessageSquare" size={16} className="mr-2" />
                     Мои переписки
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => navigate('/saved-jobs')}
+                  >
                     <Icon name="Heart" size={16} className="mr-2" />
                     Сохранённые вакансии
                   </Button>
