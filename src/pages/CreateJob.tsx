@@ -1,0 +1,227 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Icon from '@/components/ui/icon';
+import { allJobs } from '@/data/jobs';
+
+const CreateJob = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [title, setTitle] = useState('');
+  const [company, setCompany] = useState(user?.companyName || '');
+  const [location, setLocation] = useState('');
+  const [type, setType] = useState('');
+  const [salary, setSalary] = useState('');
+  const [isPremium, setIsPremium] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!user || user.role !== 'employer') {
+    navigate('/');
+    return null;
+  }
+
+  if (!user.subscription) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="AlertCircle" size={24} className="text-destructive" />
+              Необходима подписка
+            </CardTitle>
+            <CardDescription>
+              Для размещения вакансий требуется активная подписка
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/subscription-select')} className="w-full">
+              <Icon name="CreditCard" size={16} className="mr-2" />
+              Выбрать подписку
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const userJobs = allJobs.filter(j => j.employerId === user.id);
+  const canCreateJob = user.subscription === 'premium' || userJobs.length === 0;
+  const canCreatePremium = user.subscription === 'premium';
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!canCreateJob) {
+      setError('У вас базовая подписка. Можно создать только 1 вакансию.');
+      return;
+    }
+
+    if (isPremium && !canCreatePremium) {
+      setError('Премиум-вакансии доступны только с подпиской "Премиум"');
+      return;
+    }
+
+    const newJob = {
+      id: Date.now(),
+      title,
+      company,
+      location,
+      type,
+      salary,
+      category: 'Работа с людьми',
+      ageRange: '14-17',
+      coordinates: [56.0184, 92.8672] as [number, number],
+      isPremium,
+      employerId: user.id
+    };
+
+    allJobs.push(newJob);
+    localStorage.setItem('jobs', JSON.stringify(allJobs));
+    navigate('/employer-profile');
+  };
+
+  return (
+    <div className="min-h-screen bg-secondary/10">
+      <header className="border-b border-border bg-card sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <Button onClick={() => navigate('/employer-profile')} variant="ghost">
+            <Icon name="ArrowLeft" size={20} className="mr-2" />
+            Назад в профиль
+          </Button>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Создать вакансию</CardTitle>
+              <CardDescription>
+                {user.subscription === 'basic' && (
+                  <span className="text-orange-500">
+                    Базовая подписка: доступна 1 вакансия ({userJobs.length}/1 использовано)
+                  </span>
+                )}
+                {user.subscription === 'premium' && (
+                  <span className="text-primary">
+                    Премиум подписка: неограниченное количество вакансий
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!canCreateJob ? (
+                <div className="bg-destructive/10 text-destructive px-4 py-3 rounded mb-6">
+                  <p className="font-semibold mb-2">Лимит достигнут</p>
+                  <p className="text-sm mb-4">
+                    С базовой подпиской можно создать только 1 вакансию. Обновите подписку для неограниченного размещения.
+                  </p>
+                  <Button onClick={() => navigate('/subscription-select')} variant="default" size="sm">
+                    <Icon name="Crown" size={16} className="mr-2" />
+                    Обновить до премиум
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Название вакансии *</Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      placeholder="Помощник в кофейне"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="company">Компания *</Label>
+                    <Input
+                      id="company"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      required
+                      placeholder="Coffee House"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Адрес *</Label>
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      required
+                      placeholder="Красноярск, ул. Ленина, 45"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="type">Тип занятости *</Label>
+                    <Input
+                      id="type"
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      required
+                      placeholder="Частичная, Гибкий график"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="salary">Зарплата *</Label>
+                    <Input
+                      id="salary"
+                      value={salary}
+                      onChange={(e) => setSalary(e.target.value)}
+                      required
+                      placeholder="28000 ₽"
+                    />
+                  </div>
+
+                  {canCreatePremium && (
+                    <div className="flex items-center space-x-2 p-4 border border-yellow-500 rounded-lg bg-yellow-50/5">
+                      <Checkbox
+                        id="premium"
+                        checked={isPremium}
+                        onCheckedChange={(checked) => setIsPremium(checked as boolean)}
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="premium" className="flex items-center gap-2 cursor-pointer">
+                          <Icon name="Crown" size={16} className="text-yellow-500" />
+                          <span className="font-semibold">Сделать премиум-вакансией</span>
+                        </Label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Вакансия будет видна только работникам с премиум-подпиской и всегда наверху
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="bg-destructive/10 text-destructive px-4 py-2 rounded text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <Button type="submit" className="w-full">
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Создать вакансию
+                  </Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateJob;

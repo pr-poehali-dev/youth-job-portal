@@ -8,6 +8,8 @@ export interface Job {
   salary: string;
   category: string;
   coordinates: [number, number];
+  isPremium?: boolean;
+  employerId?: string;
 }
 
 export interface JobDetails extends Job {

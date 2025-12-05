@@ -14,13 +14,23 @@ const Vacancies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
-  const filteredJobs = allJobs.filter((job) => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.company.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = !selectedType || job.type === selectedType;
-    
-    return matchesSearch && matchesType;
-  });
+  const filteredJobs = allJobs
+    .filter((job) => {
+      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           job.company.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = !selectedType || job.type === selectedType;
+      
+      if (job.isPremium && (!user || user.subscription !== 'premium')) {
+        return false;
+      }
+      
+      return matchesSearch && matchesType;
+    })
+    .sort((a, b) => {
+      if (a.isPremium && !b.isPremium) return -1;
+      if (!a.isPremium && b.isPremium) return 1;
+      return 0;
+    });
 
   const recommendedJobs = user?.testResult 
     ? allJobs.filter(job => job.category === user.testResult)
@@ -138,17 +148,27 @@ const Vacancies = () => {
                   <div
                     key={job.id}
                     className={`bg-card p-6 rounded-lg border ${
-                      isRecommended 
+                      job.isPremium
+                        ? 'border-yellow-500 shadow-lg shadow-yellow-500/20 bg-gradient-to-b from-yellow-50/5 to-transparent'
+                        : isRecommended 
                         ? 'border-primary shadow-lg shadow-primary/10' 
                         : 'border-border'
-                    } hover:border-primary/50 transition`}
+                    } hover:border-primary/50 transition relative`}
                   >
-                    {isRecommended && (
-                      <Badge className="mb-3 bg-primary/20 text-primary border-primary/30">
-                        <Icon name="Star" size={12} className="mr-1" />
-                        Рекомендовано
-                      </Badge>
-                    )}
+                    <div className="flex gap-2 mb-3">
+                      {job.isPremium && (
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">
+                          <Icon name="Crown" size={12} className="mr-1" />
+                          Премиум
+                        </Badge>
+                      )}
+                      {isRecommended && (
+                        <Badge className="bg-primary/20 text-primary border-primary/30">
+                          <Icon name="Star" size={12} className="mr-1" />
+                          Рекомендовано
+                        </Badge>
+                      )}
+                    </div>
                     
                     <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
                     <p className="text-muted-foreground mb-4">{job.company}</p>

@@ -8,14 +8,19 @@ interface User {
   completedTest: boolean;
   testResult?: string;
   role: 'user' | 'employer';
+  subscription?: 'basic' | 'premium' | null;
+  subscriptionExpiry?: string;
+  companyName?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, age: number) => Promise<boolean>;
+  registerEmployer: (name: string, email: string, password: string, companyName: string) => Promise<boolean>;
   logout: () => void;
   updateTestResult: (result: string) => void;
+  updateSubscription: (subscription: 'basic' | 'premium' | null, expiryDate?: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +94,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password,
       age,
       completedTest: false,
-      role: 'user' as const
+      role: 'user' as const,
+      subscription: null
+    };
+
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    setUser(userWithoutPassword);
+    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+    
+    return true;
+  };
+
+  const registerEmployer = async (name: string, email: string, password: string, companyName: string): Promise<boolean> => {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    if (users.some((u: any) => u.email === email)) {
+      return false;
+    }
+
+    const newUser = {
+      id: Date.now().toString(),
+      name,
+      email,
+      password,
+      age: 25,
+      completedTest: true,
+      role: 'employer' as const,
+      companyName,
+      subscription: null
     };
 
     users.push(newUser);
@@ -122,8 +157,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateSubscription = (subscription: 'basic' | 'premium' | null, expiryDate?: string) => {
+    if (user) {
+      const updatedUser = { ...user, subscription, subscriptionExpiry: expiryDate };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const userIndex = users.findIndex((u: any) => u.id === user.id);
+      if (userIndex !== -1) {
+        users[userIndex] = { ...users[userIndex], subscription, subscriptionExpiry: expiryDate };
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateTestResult }}>
+    <AuthContext.Provider value={{ user, login, register, registerEmployer, logout, updateTestResult, updateSubscription }}>
       {children}
     </AuthContext.Provider>
   );

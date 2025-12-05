@@ -6,28 +6,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 
-const Register = () => {
+const RegisterEmployer = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [age, setAge] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState('');
-  const { register } = useAuth();
+  const { registerEmployer } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const ageNum = parseInt(age);
-    if (ageNum < 14 || ageNum > 17) {
-      setError('Возраст должен быть от 14 до 17 лет');
+    if (!companyName.trim()) {
+      setError('Укажите название компании');
       return;
     }
 
-    const success = await register(name, email, password, ageNum);
+    const success = await registerEmployer(name, email, password, companyName);
     if (success) {
-      navigate('/user-subscription');
+      navigate('/subscription-select');
     } else {
       setError('Пользователь с таким email уже существует');
     }
@@ -38,13 +37,13 @@ const Register = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">Успех 14</h1>
-          <p className="text-muted-foreground">Создайте аккаунт для поиска работы</p>
+          <p className="text-muted-foreground">Регистрация работодателя</p>
         </div>
 
         <div className="bg-card p-8 rounded-lg border border-border">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="name">Имя</Label>
+              <Label htmlFor="name">Ваше имя</Label>
               <Input
                 id="name"
                 type="text"
@@ -56,6 +55,18 @@ const Register = () => {
             </div>
 
             <div>
+              <Label htmlFor="companyName">Название компании</Label>
+              <Input
+                id="companyName"
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+                placeholder="ООО Ромашка"
+              />
+            </div>
+
+            <div>
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -63,7 +74,7 @@ const Register = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="example@mail.ru"
+                placeholder="company@mail.ru"
               />
             </div>
 
@@ -80,20 +91,6 @@ const Register = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="age">Возраст</Label>
-              <Input
-                id="age"
-                type="number"
-                value={age}
-                onChange={(e) => setAge(e.target.value)}
-                required
-                min={14}
-                max={17}
-                placeholder="14-17 лет"
-              />
-            </div>
-
             {error && (
               <div className="bg-destructive/10 text-destructive px-4 py-2 rounded text-sm">
                 {error}
@@ -101,7 +98,7 @@ const Register = () => {
             )}
 
             <Button type="submit" className="w-full">
-              Зарегистрироваться
+              Продолжить
             </Button>
           </form>
 
@@ -126,4 +123,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterEmployer;

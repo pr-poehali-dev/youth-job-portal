@@ -147,11 +147,37 @@ const EmployerProfile = () => {
                       <Icon name="Mail" size={16} />
                       <span>{user.email}</span>
                     </div>
-                    <Badge variant="default" className="bg-primary">
-                      <Icon name="Briefcase" size={14} className="mr-1" />
-                      Работодатель
-                    </Badge>
+                    {user.companyName && (
+                      <div className="flex items-center gap-2">
+                        <Icon name="Building2" size={16} />
+                        <span>{user.companyName}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default" className="bg-primary">
+                        <Icon name="Briefcase" size={14} className="mr-1" />
+                        Работодатель
+                      </Badge>
+                      {user.subscription && (
+                        <Badge variant={user.subscription === 'premium' ? 'default' : 'secondary'} className={user.subscription === 'premium' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : ''}>
+                          <Icon name={user.subscription === 'premium' ? 'Crown' : 'Check'} size={14} className="mr-1" />
+                          {user.subscription === 'premium' ? 'Премиум' : 'Базовая'}
+                        </Badge>
+                      )}
+                      {!user.subscription && (
+                        <Badge variant="destructive">
+                          <Icon name="AlertCircle" size={14} className="mr-1" />
+                          Нет подписки
+                        </Badge>
+                      )}
+                    </div>
                   </div>
+                  {!user.subscription && (
+                    <Button onClick={() => navigate('/subscription-select')} className="mt-4">
+                      <Icon name="CreditCard" size={16} className="mr-2" />
+                      Оформить подписку
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -342,10 +368,18 @@ const EmployerProfile = () => {
             <TabsContent value="vacancies" className="mt-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Мои вакансии</CardTitle>
-                  <CardDescription>
-                    Все активные вакансии с откликами
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Мои вакансии</CardTitle>
+                      <CardDescription>
+                        Все активные вакансии с откликами
+                      </CardDescription>
+                    </div>
+                    <Button onClick={() => navigate('/create-job')}>
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Создать вакансию
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">

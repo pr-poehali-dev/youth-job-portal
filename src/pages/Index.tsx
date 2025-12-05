@@ -13,7 +13,7 @@ const Index = () => {
           <Link to="/" className="text-2xl font-bold">Успех 14</Link>
           <div className="flex gap-3">
             {user ? (
-              <Link to="/profile">
+              <Link to={user.role === 'employer' ? '/employer-profile' : '/profile'}>
                 <Button>
                   <Icon name="User" size={16} className="mr-2" />
                   Личный кабинет
@@ -25,7 +25,10 @@ const Index = () => {
                   <Button variant="outline">Войти</Button>
                 </Link>
                 <Link to="/register">
-                  <Button>Регистрация</Button>
+                  <Button>Я ищу работу</Button>
+                </Link>
+                <Link to="/register-employer">
+                  <Button variant="secondary">Я работодатель</Button>
                 </Link>
               </>
             )}
@@ -89,6 +92,35 @@ const Index = () => {
             <h3 className="text-xl font-semibold mb-3">Безопасность</h3>
             <p className="text-muted-foreground">
               Все вакансии проверены и соответствуют законам о трудоустройстве подростков
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-yellow-50/5 to-transparent">
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-full mb-4">
+            <Icon name="Crown" size={20} />
+            <span className="font-semibold">Премиум возможности</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4">Получи доступ к лучшим вакансиям</h2>
+          <p className="text-muted-foreground text-lg">
+            Премиум-подписка всего за 150₽ открывает эксклюзивные предложения
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
+          <div className="bg-card p-6 rounded-lg border border-border">
+            <Icon name="Briefcase" size={32} className="text-primary mb-3" />
+            <h4 className="font-semibold mb-2">Эксклюзивные вакансии</h4>
+            <p className="text-sm text-muted-foreground">
+              Доступ к премиум-вакансиям от лучших работодателей
+            </p>
+          </div>
+          <div className="bg-card p-6 rounded-lg border border-border">
+            <Icon name="TrendingUp" size={32} className="text-primary mb-3" />
+            <h4 className="font-semibold mb-2">Приоритет в откликах</h4>
+            <p className="text-sm text-muted-foreground">
+              Твое резюме увидят первым среди всех кандидатов
             </p>
           </div>
         </div>

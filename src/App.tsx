@@ -9,8 +9,12 @@ import { ActivityProvider } from "@/contexts/ActivityContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import RegisterEmployer from "./pages/RegisterEmployer";
+import SubscriptionSelect from "./pages/SubscriptionSelect";
+import UserSubscription from "./pages/UserSubscription";
 import Profile from "./pages/Profile";
 import EmployerProfile from "./pages/EmployerProfile";
+import CreateJob from "./pages/CreateJob";
 import Test from "./pages/Test";
 import Vacancies from "./pages/Vacancies";
 import JobDetails from "./pages/JobDetails";
@@ -33,8 +37,12 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/register-employer" element={<RegisterEmployer />} />
+              <Route path="/subscription-select" element={<SubscriptionSelect />} />
+              <Route path="/user-subscription" element={<UserSubscription />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/employer-profile" element={<EmployerProfile />} />
+              <Route path="/create-job" element={<CreateJob />} />
               <Route path="/test" element={<Test />} />
               <Route path="/vacancies" element={<Vacancies />} />
               <Route path="/job/:id" element={<JobDetails />} />

@@ -67,6 +67,37 @@ const JobDetails = () => {
     );
   }
 
+  if (job.isPremium && (!user || user.subscription !== 'premium')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center mx-auto mb-6">
+            <Icon name="Crown" size={40} className="text-white" />
+          </div>
+          <h2 className="text-2xl font-bold mb-4">Премиум-вакансия</h2>
+          <p className="text-muted-foreground mb-6">
+            Эта вакансия доступна только пользователям с премиум-подпиской
+          </p>
+          <div className="space-y-3">
+            {user ? (
+              <Button onClick={() => navigate('/user-subscription')} size="lg" className="w-full">
+                <Icon name="Crown" size={20} className="mr-2" />
+                Оформить премиум за 150₽
+              </Button>
+            ) : (
+              <Button onClick={() => navigate('/register')} size="lg" className="w-full">
+                Зарегистрироваться
+              </Button>
+            )}
+            <Button onClick={() => navigate('/vacancies')} variant="outline" className="w-full">
+              Вернуться к вакансиям
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isRecommended = user?.testResult && job.category === user.testResult;
 
   return (
