@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { allJobs } from '@/data/jobs';
+import { Job, defaultJobs } from '@/data/jobs';
 
 const CreateJob = () => {
   const { user } = useAuth();
@@ -20,6 +20,12 @@ const CreateJob = () => {
   const [salary, setSalary] = useState('');
   const [isPremium, setIsPremium] = useState(false);
   const [error, setError] = useState('');
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('jobs');
+    setAllJobs(stored ? JSON.parse(stored) : defaultJobs);
+  }, []);
 
   if (!user || user.role !== 'employer') {
     navigate('/');
@@ -82,8 +88,8 @@ const CreateJob = () => {
       employerId: user.id
     };
 
-    allJobs.push(newJob);
-    localStorage.setItem('jobs', JSON.stringify(allJobs));
+    const updatedJobs = [...allJobs, newJob];
+    localStorage.setItem('jobs', JSON.stringify(updatedJobs));
     navigate('/employer-profile');
   };
 

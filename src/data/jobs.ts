@@ -23,7 +23,7 @@ export interface JobDetails extends Job {
   };
 }
 
-export const allJobs: Job[] = [
+export const defaultJobs: Job[] = [
   { id: 1, title: 'Помощник в кофейне', company: 'Coffee House', location: 'Красноярск, ул. Ленина, 45', type: 'Частичная', ageRange: '14-17', salary: '28000 ₽', category: 'Работа с людьми', coordinates: [56.0184, 92.8672] },
   { id: 2, title: 'Курьер', company: 'Delivery Express', location: 'Красноярск, все районы', type: 'Гибкий график', ageRange: '16-17', salary: '45000 ₽', category: 'Активная работа', coordinates: [56.0153, 92.8932] },
   { id: 3, title: 'Промоутер', company: 'Marketing Pro', location: 'Красноярск, пр. Мира, 120', type: 'Проектная', ageRange: '14-17', salary: '35000 ₽', category: 'Активная работа', coordinates: [56.0089, 92.8526] },
@@ -55,6 +55,12 @@ export const allJobs: Job[] = [
   { id: 29, title: 'Помощник монтажёра видео', company: 'Video Production', location: 'Красноярск, ул. Академика Павлова, 54', type: 'Стажировка', ageRange: '16-17', salary: '38000 ₽', category: 'Творчество и дизайн', coordinates: [56.0087, 92.8167] },
   { id: 30, title: 'Контент-менеджер', company: 'Social Media Hub', location: 'Красноярск, ул. Партизана Железняка, 48', type: 'Гибкий график', ageRange: '16-17', salary: '41000 ₽', category: 'IT и технологии', coordinates: [56.0278, 92.8689] },
 ];
+
+if (typeof window !== 'undefined' && !localStorage.getItem('jobs')) {
+  localStorage.setItem('jobs', JSON.stringify(defaultJobs));
+}
+
+export const allJobs = defaultJobs;
 
 export const jobsDetails: Record<number, JobDetails> = {
   1: {

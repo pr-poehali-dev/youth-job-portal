@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import VacancyMap from '@/components/VacancyMap';
-import { allJobs } from '@/data/jobs';
+import { Job } from '@/data/jobs';
 
 const Vacancies = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
+
+  useEffect(() => {
+    const loadJobs = () => {
+      const stored = localStorage.getItem('jobs');
+      if (stored) {
+        try {
+          const jobs = JSON.parse(stored);
+          setAllJobs(jobs);
+        } catch (e) {
+          const { defaultJobs } = require('@/data/jobs');
+          setAllJobs(defaultJobs);
+        }
+      } else {
+        const { defaultJobs } = require('@/data/jobs');
+        localStorage.setItem('jobs', JSON.stringify(defaultJobs));
+        setAllJobs(defaultJobs);
+      }
+    };
+
+    loadJobs();
+    const interval = setInterval(loadJobs, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredJobs = allJobs
     .filter((job) => {
@@ -20,7 +44,7 @@ const Vacancies = () => {
                            job.company.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = !selectedType || job.type === selectedType;
       
-      if (job.isPremium && (!user || user.subscription !== 'premium')) {
+      if (job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
         return false;
       }
       

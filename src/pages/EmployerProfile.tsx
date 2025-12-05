@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { useState, useEffect } from 'react';
-import { allJobs } from '@/data/jobs';
+import { Job, defaultJobs } from '@/data/jobs';
 import EmployerHeader from '@/components/employer/EmployerHeader';
 import EmployerStats from '@/components/employer/EmployerStats';
 import ResponsesTab, { ResponseData } from '@/components/employer/ResponsesTab';
@@ -18,10 +18,15 @@ const EmployerProfile = () => {
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [interviews, setInterviews] = useState<InterviewData[]>([]);
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
     const loadData = () => {
       if (!user) return;
+
+      const stored = localStorage.getItem('jobs');
+      const loadedJobs: Job[] = stored ? JSON.parse(stored) : defaultJobs;
+      setAllJobs(loadedJobs);
 
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const usersList = user.email === 'mininkonstantin@gmail.com' 
@@ -30,8 +35,8 @@ const EmployerProfile = () => {
       setAllUsers(usersList);
 
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
-        ? allJobs
-        : allJobs.filter(job => job.employerId === user.id);
+        ? loadedJobs
+        : loadedJobs.filter(job => job.employerId === user.id);
       const employerJobIds = employerJobs.map(job => job.id);
 
       const allResponses: ResponseData[] = [];
