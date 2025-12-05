@@ -22,35 +22,47 @@ const EmployerProfile = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const usersList = users.filter((u: any) => u.role === 'user');
-    setAllUsers(usersList);
+    const loadData = () => {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const usersList = users.filter((u: any) => u.role === 'user');
+      setAllUsers(usersList);
 
-    const allResponses: ResponseData[] = [];
-    users.forEach((u: any) => {
-      if (u.role === 'user') {
-        const userActivities = JSON.parse(localStorage.getItem(`activities_${u.id}`) || '[]');
-        const userResponses = userActivities.filter((a: any) => a.action === 'response');
-        
-        userResponses.forEach((r: any) => {
-          allResponses.push({
-            userId: u.id,
-            userName: u.name,
-            userEmail: u.email,
-            jobId: r.jobId,
-            jobTitle: r.jobTitle,
-            timestamp: r.timestamp
+      const allResponses: ResponseData[] = [];
+      users.forEach((u: any) => {
+        if (u.role === 'user') {
+          const userActivities = JSON.parse(localStorage.getItem(`activities_${u.id}`) || '[]');
+          const userResponses = userActivities.filter((a: any) => a.action === 'response');
+          
+          userResponses.forEach((r: any) => {
+            allResponses.push({
+              userId: u.id,
+              userName: u.name,
+              userEmail: u.email,
+              jobId: r.jobId,
+              jobTitle: r.jobTitle,
+              timestamp: r.timestamp
+            });
           });
-        });
-      }
-    });
+        }
+      });
 
-    allResponses.sort((a, b) => b.timestamp - a.timestamp);
-    setResponses(allResponses);
+      allResponses.sort((a, b) => b.timestamp - a.timestamp);
+      setResponses(allResponses);
+    };
+
+    loadData();
+    
+    const interval = setInterval(loadData, 2000);
+    return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!user || user.role !== 'employer') {
+      navigate('/profile');
+    }
+  }, [user, navigate]);
+
   if (!user || user.role !== 'employer') {
-    navigate('/profile');
     return null;
   }
 

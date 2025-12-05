@@ -5,19 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { useEffect } from 'react';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { activities, getStats } = useActivity();
   const navigate = useNavigate();
 
-  if (!user) {
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    } else if (user.role === 'employer') {
+      navigate('/employer-profile');
+    }
+  }, [user, navigate]);
 
-  if (user.role === 'employer') {
-    navigate('/employer-profile');
+  if (!user || user.role === 'employer') {
     return null;
   }
 
