@@ -7,6 +7,7 @@ interface User {
   age: number;
   completedTest: boolean;
   testResult?: string;
+  role: 'user' | 'employer';
 }
 
 interface AuthContextType {
@@ -26,6 +27,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+    }
+    
+    // Создаём аккаунт работодателя если его нет
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const employerExists = users.some((u: any) => u.email === 'mininkonstantin@gmail.com');
+    
+    if (!employerExists) {
+      const employerUser = {
+        id: 'employer_admin',
+        name: 'Администратор',
+        email: 'mininkonstantin@gmail.com',
+        password: 'admin123',
+        age: 25,
+        completedTest: true,
+        role: 'employer'
+      };
+      users.push(employerUser);
+      localStorage.setItem('users', JSON.stringify(users));
     }
   }, []);
 
@@ -55,7 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
       age,
-      completedTest: false
+      completedTest: false,
+      role: 'user' as const
     };
 
     users.push(newUser);

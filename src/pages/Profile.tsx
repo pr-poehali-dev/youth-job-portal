@@ -16,6 +16,11 @@ const Profile = () => {
     return null;
   }
 
+  if (user.role === 'employer') {
+    navigate('/employer-profile');
+    return null;
+  }
+
   const handleLogout = () => {
     logout();
     navigate('/');
