@@ -37,11 +37,6 @@ const CandidatesTab = ({ allUsers, userSubscription }: CandidatesTabProps) => {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-semibold text-lg">{candidate.name}</span>
                   <Badge variant="outline">{candidate.age} лет</Badge>
-                  {candidate.testResult && (
-                    <Badge variant="default" className="bg-primary">
-                      {candidate.testResult}
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex items-center gap-2 mb-2">
                   <Icon name="Mail" size={14} className="text-muted-foreground" />
