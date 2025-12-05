@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { allJobs } from '@/data/jobs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 interface Message {
   id: number;
@@ -46,6 +48,9 @@ const Chat = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [interviewDate, setInterviewDate] = useState('');
+  const [interviewTime, setInterviewTime] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const responseIndexRef = useRef(2);
 
@@ -97,6 +102,40 @@ const Chat = () => {
     }, 1500 + Math.random() * 1000);
   };
 
+  const scheduleInterview = () => {
+    if (!interviewDate || !interviewTime || !user) return;
+
+    const interviewKey = `interview_${user.id}_${id}`;
+    const interviewData = {
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      jobId: Number(id),
+      jobTitle: jobInfo?.title || '',
+      date: interviewDate,
+      time: interviewTime,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(interviewKey, JSON.stringify(interviewData));
+
+    const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
+    allInterviews.push(interviewData);
+    localStorage.setItem('all_interviews', JSON.stringify(allInterviews));
+
+    const confirmMessage: Message = {
+      id: messages.length + 1,
+      text: `Отлично! Я записал вас на собеседование ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}. Ждём вас!`,
+      sender: 'employer',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, confirmMessage]);
+    setIsDialogOpen(false);
+    setInterviewDate('');
+    setInterviewTime('');
+  };
+
   if (!jobInfo) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -127,6 +166,53 @@ const Chat = () => {
               <h1 className="font-bold text-lg">{jobInfo.company}</h1>
               <p className="text-sm text-muted-foreground">{jobInfo.title}</p>
             </div>
+            {user?.role === 'employer' && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="default" size="sm">
+                    <Icon name="Calendar" size={16} className="mr-2" />
+                    Назначить собеседование
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Назначить собеседование</DialogTitle>
+                    <DialogDescription>
+                      Укажите дату и время для встречи с кандидатом
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Дата</Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={interviewDate}
+                        onChange={(e) => setInterviewDate(e.target.value)}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="time">Время</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={interviewTime}
+                        onChange={(e) => setInterviewTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Отмена
+                    </Button>
+                    <Button onClick={scheduleInterview} disabled={!interviewDate || !interviewTime}>
+                      Назначить
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
             <Link to="/profile">
               <Button variant="ghost" size="icon">
                 <Icon name="User" size={20} />

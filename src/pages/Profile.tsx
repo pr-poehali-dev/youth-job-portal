@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { activities, getStats } = useActivity();
   const navigate = useNavigate();
+  const [interviews, setInterviews] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -19,6 +20,21 @@ const Profile = () => {
       navigate('/employer-profile');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const loadInterviews = () => {
+      const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
+      const userInterviews = allInterviews.filter((i: any) => i.userId === user.id);
+      userInterviews.sort((a: any, b: any) => b.timestamp - a.timestamp);
+      setInterviews(userInterviews);
+    };
+
+    loadInterviews();
+    const interval = setInterval(loadInterviews, 3000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   if (!user || user.role === 'employer') {
     return null;
@@ -151,6 +167,42 @@ const Profile = () => {
                   </Card>
                 ))}
               </div>
+
+              {interviews.length > 0 && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Назначенные собеседования</CardTitle>
+                    <CardDescription>Ваши предстоящие встречи с работодателями</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {interviews.map((interview, index) => (
+                        <div key={index} className="flex items-start gap-3 p-4 rounded-lg border border-border bg-purple-500/5">
+                          <div className="bg-purple-500/10 p-3 rounded-full">
+                            <Icon name="Calendar" size={24} className="text-purple-500" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg mb-1">{interview.jobTitle}</p>
+                            <div className="flex items-center gap-3 text-sm mt-2">
+                              <div className="flex items-center gap-1">
+                                <Icon name="Calendar" size={14} className="text-muted-foreground" />
+                                <span>{new Date(interview.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Icon name="Clock" size={14} className="text-muted-foreground" />
+                                <span className="font-medium text-purple-600">{interview.time}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Badge variant="default" className="bg-purple-500">
+                            Назначено
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card className="mt-6">
                 <CardHeader>

@@ -18,11 +18,23 @@ interface ResponseData {
   timestamp: number;
 }
 
+interface InterviewData {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  jobId: number;
+  jobTitle: string;
+  date: string;
+  time: string;
+  timestamp: number;
+}
+
 const EmployerProfile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [interviews, setInterviews] = useState<InterviewData[]>([]);
 
   useEffect(() => {
     const loadData = () => {
@@ -52,6 +64,10 @@ const EmployerProfile = () => {
 
       allResponses.sort((a, b) => b.timestamp - a.timestamp);
       setResponses(allResponses);
+
+      const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
+      allInterviews.sort((a: InterviewData, b: InterviewData) => b.timestamp - a.timestamp);
+      setInterviews(allInterviews);
     };
 
     loadData();
@@ -137,12 +153,19 @@ const EmployerProfile = () => {
             </CardContent>
           </Card>
 
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardContent className="p-6 text-center">
                 <Icon name="Send" size={32} className="mx-auto mb-2 text-blue-500" />
                 <div className="text-3xl font-bold">{responses.length}</div>
                 <div className="text-muted-foreground text-sm">Откликов получено</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6 text-center">
+                <Icon name="Calendar" size={32} className="mx-auto mb-2 text-purple-500" />
+                <div className="text-3xl font-bold">{interviews.length}</div>
+                <div className="text-muted-foreground text-sm">Собеседований</div>
               </CardContent>
             </Card>
             <Card>
@@ -154,7 +177,7 @@ const EmployerProfile = () => {
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <Icon name="Briefcase" size={32} className="mx-auto mb-2 text-purple-500" />
+                <Icon name="Briefcase" size={32} className="mx-auto mb-2 text-orange-500" />
                 <div className="text-3xl font-bold">{allJobs.length}</div>
                 <div className="text-muted-foreground text-sm">Активных вакансий</div>
               </CardContent>
@@ -162,10 +185,14 @@ const EmployerProfile = () => {
           </div>
 
           <Tabs defaultValue="responses" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="responses">
                 <Icon name="Send" size={16} className="mr-2" />
                 Отклики
+              </TabsTrigger>
+              <TabsTrigger value="interviews">
+                <Icon name="Calendar" size={16} className="mr-2" />
+                Собеседования
               </TabsTrigger>
               <TabsTrigger value="vacancies">
                 <Icon name="Briefcase" size={16} className="mr-2" />
@@ -220,6 +247,72 @@ const EmployerProfile = () => {
                             variant="outline" 
                             size="sm"
                             onClick={() => navigate(`/chat/${response.jobId}`)}
+                          >
+                            <Icon name="MessageSquare" size={16} className="mr-2" />
+                            Чат
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="interviews" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Запланированные собеседования</CardTitle>
+                  <CardDescription>
+                    Все назначенные встречи с кандидатами
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {interviews.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Icon name="Calendar" size={48} className="mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">Собеседований пока не назначено</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Назначайте собеседования через чат с кандидатами
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {interviews.map((interview, index) => (
+                        <div key={index} className="flex items-start gap-3 p-4 rounded-lg border border-border hover:bg-secondary/50 transition">
+                          <div className="bg-purple-500/10 p-3 rounded-full">
+                            <Icon name="Calendar" size={24} className="text-purple-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-semibold text-lg">{interview.userName}</span>
+                              <Badge variant="default" className="bg-purple-500">
+                                {new Date(interview.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Icon name="Mail" size={14} className="text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">{interview.userEmail}</span>
+                            </div>
+                            <p className="text-sm mb-1">
+                              <span className="text-muted-foreground">Вакансия:</span>{' '}
+                              <span className="font-medium">{interview.jobTitle}</span>
+                            </p>
+                            <div className="flex items-center gap-3 text-sm mt-2">
+                              <div className="flex items-center gap-1">
+                                <Icon name="Calendar" size={14} className="text-muted-foreground" />
+                                <span>{new Date(interview.date).toLocaleDateString('ru-RU')}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Icon name="Clock" size={14} className="text-muted-foreground" />
+                                <span className="font-medium">{interview.time}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/chat/${interview.jobId}`)}
                           >
                             <Icon name="MessageSquare" size={16} className="mr-2" />
                             Чат
@@ -331,6 +424,10 @@ const EmployerProfile = () => {
                     <div className="grid md:grid-cols-2 gap-4">
                       {allUsers.map((candidate) => {
                         const candidateResponses = responses.filter(r => r.userId === candidate.id);
+                        const candidateInterviews = interviews.filter(i => i.userId === candidate.id);
+                        const testResult = localStorage.getItem(`test_result_${candidate.id}`);
+                        const testData = testResult ? JSON.parse(testResult) : null;
+                        
                         return (
                           <div key={candidate.id} className="flex items-start gap-3 p-4 rounded-lg border border-border hover:bg-secondary/50 transition">
                             <div className="bg-green-500/10 p-3 rounded-full">
@@ -339,7 +436,7 @@ const EmployerProfile = () => {
                             <div className="flex-1">
                               <div className="font-semibold text-lg mb-1">{candidate.name}</div>
                               <p className="text-sm text-muted-foreground mb-2">{candidate.email}</p>
-                              <div className="flex items-center gap-2 text-xs mb-2">
+                              <div className="flex items-center gap-2 text-xs mb-2 flex-wrap">
                                 <Badge variant="secondary">{candidate.age} лет</Badge>
                                 {candidate.completedTest && (
                                   <Badge variant="outline" className="bg-green-500/10 text-green-700">
@@ -348,11 +445,22 @@ const EmployerProfile = () => {
                                   </Badge>
                                 )}
                               </div>
-                              {candidateResponses.length > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  Откликов: {candidateResponses.length}
-                                </p>
+                              {testData && (
+                                <div className="mt-2 p-2 bg-secondary/50 rounded text-xs space-y-1">
+                                  <p className="font-medium">Результаты теста:</p>
+                                  <p><span className="text-muted-foreground">Правильных ответов:</span> <span className="font-medium">{testData.correctAnswers}/20</span></p>
+                                  <p><span className="text-muted-foreground">Процент:</span> <span className="font-medium">{Math.round((testData.correctAnswers / 20) * 100)}%</span></p>
+                                  <p className="text-muted-foreground">{new Date(testData.timestamp).toLocaleDateString('ru-RU')}</p>
+                                </div>
                               )}
+                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                {candidateResponses.length > 0 && (
+                                  <span>Откликов: {candidateResponses.length}</span>
+                                )}
+                                {candidateInterviews.length > 0 && (
+                                  <span>Собеседований: {candidateInterviews.length}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
