@@ -117,10 +117,11 @@ const Chat = () => {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/vacancies')}
+              className="flex items-center gap-2"
             >
               <Icon name="ArrowLeft" size={20} />
+              <span className="hidden sm:inline">Назад к вакансиям</span>
             </Button>
             <div className="flex-1">
               <h1 className="font-bold text-lg">{jobInfo.company}</h1>
