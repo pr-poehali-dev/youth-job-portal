@@ -24,7 +24,9 @@ const EmployerProfile = () => {
       if (!user) return;
 
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const usersList = users.filter((u: any) => u.role !== 'employer');
+      const usersList = user.email === 'mininkonstantin@gmail.com' 
+        ? users.filter((u: any) => u.role !== 'employer')
+        : [];
       setAllUsers(usersList);
 
       const employerJobs = allJobs.filter(job => job.employerId === user.id);
