@@ -4,16 +4,62 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivity } from '@/contexts/ActivityContext';
-import { jobsDetails } from '@/data/jobs';
-import { useEffect } from 'react';
+import { jobsDetails, Job, JobDetails as JobDetailsType } from '@/data/jobs';
+import { useEffect, useState } from 'react';
 
 const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addView, toggleSaveJob, isJobSaved, addResponse, hasResponded } = useActivity();
+  const [job, setJob] = useState<JobDetailsType | undefined>(undefined);
   
-  const job = id ? jobsDetails[Number(id)] : undefined;
+  useEffect(() => {
+    if (!id) return;
+    
+    const jobId = Number(id);
+    
+    if (jobsDetails[jobId]) {
+      setJob(jobsDetails[jobId]);
+    } else {
+      const stored = localStorage.getItem('jobs');
+      if (stored) {
+        const allJobs: Job[] = JSON.parse(stored);
+        const foundJob = allJobs.find(j => j.id === jobId);
+        
+        if (foundJob) {
+          const jobDetail: JobDetailsType = {
+            ...foundJob,
+            description: 'Присоединяйтесь к нашей команде! Мы ищем ответственного и активного сотрудника для работы в комфортных условиях.',
+            requirements: [
+              `Возраст ${foundJob.ageRange} лет`,
+              'Ответственность и пунктуальность',
+              'Готовность работать в команде',
+              'Желание учиться и развиваться'
+            ],
+            responsibilities: [
+              'Выполнение основных рабочих задач',
+              'Соблюдение правил и стандартов компании',
+              'Взаимодействие с клиентами',
+              'Поддержание порядка на рабочем месте'
+            ],
+            conditions: [
+              `График: ${foundJob.type}`,
+              'Официальное оформление',
+              'Обучение за счёт компании',
+              'Дружный коллектив',
+              'Возможность карьерного роста'
+            ],
+            contact: {
+              phone: '+7 (391) 234-56-78',
+              email: 'hr@company.ru'
+            }
+          };
+          setJob(jobDetail);
+        }
+      }
+    }
+  }, [id]);
 
   useEffect(() => {
     if (job && user) {
