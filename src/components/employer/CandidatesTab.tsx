@@ -90,7 +90,7 @@ const CandidatesTab = ({ allUsers, userSubscription }: CandidatesTabProps) => {
                                     <Icon name="Award" size={20} className="text-primary mt-1" />
                                     <div className="flex-1">
                                       <p className="text-sm font-medium text-muted-foreground mb-2">Рекомендованное направление</p>
-                                      <Badge variant="default" className="text-base py-2 px-4 bg-gradient-to-r from-primary to-primary/80">
+                                      <Badge variant="default" className="text-base py-2 px-4 bg-gradient-to-r from-primary to-primary/80 rounded-sm">
                                         {candidate.testResult}
                                       </Badge>
                                     </div>
