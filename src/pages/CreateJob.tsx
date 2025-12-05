@@ -18,6 +18,12 @@ const CreateJob = () => {
   const [location, setLocation] = useState('');
   const [type, setType] = useState('');
   const [salary, setSalary] = useState('');
+  const [description, setDescription] = useState('');
+  const [requirements, setRequirements] = useState('');
+  const [responsibilities, setResponsibilities] = useState('');
+  const [conditions, setConditions] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState(user?.email || '');
   const [isPremium, setIsPremium] = useState(false);
   const [error, setError] = useState('');
   const [allJobs, setAllJobs] = useState<Job[]>([]);
@@ -85,7 +91,15 @@ const CreateJob = () => {
       ageRange: '14-17',
       coordinates: [56.0184, 92.8672] as [number, number],
       isPremium,
-      employerId: user.id
+      employerId: user.id,
+      description,
+      requirements: requirements.split('\n').filter(r => r.trim()),
+      responsibilities: responsibilities.split('\n').filter(r => r.trim()),
+      conditions: conditions.split('\n').filter(c => c.trim()),
+      contact: {
+        phone,
+        email
+      }
     };
 
     const updatedJobs = [...allJobs, newJob];
@@ -189,6 +203,78 @@ const CreateJob = () => {
                       required
                       placeholder="28000 ₽"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Описание вакансии *</Label>
+                    <Textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      required
+                      placeholder="Краткое описание вакансии и компании"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="requirements">Требования (каждое с новой строки) *</Label>
+                    <Textarea
+                      id="requirements"
+                      value={requirements}
+                      onChange={(e) => setRequirements(e.target.value)}
+                      required
+                      placeholder="Возраст 14-17 лет&#10;Ответственность и пунктуальность&#10;Готовность работать в команде"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="responsibilities">Обязанности (каждая с новой строки) *</Label>
+                    <Textarea
+                      id="responsibilities"
+                      value={responsibilities}
+                      onChange={(e) => setResponsibilities(e.target.value)}
+                      required
+                      placeholder="Выполнение основных рабочих задач&#10;Соблюдение правил компании&#10;Взаимодействие с клиентами"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="conditions">Условия работы (каждое с новой строки) *</Label>
+                    <Textarea
+                      id="conditions"
+                      value={conditions}
+                      onChange={(e) => setConditions(e.target.value)}
+                      required
+                      placeholder="Официальное оформление&#10;Обучение за счёт компании&#10;Дружный коллектив&#10;Возможность карьерного роста"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="phone">Телефон для связи *</Label>
+                      <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                        placeholder="+7 (391) 234-56-78"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email для связи *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        placeholder="hr@company.ru"
+                      />
+                    </div>
                   </div>
 
                   {canCreatePremium && (
