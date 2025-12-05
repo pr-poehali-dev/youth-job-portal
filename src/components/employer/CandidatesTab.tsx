@@ -72,53 +72,103 @@ const CandidatesTab = ({ allUsers, userSubscription }: CandidatesTabProps) => {
                     {candidate.completedTest && candidate.testResult ? (
                       isPremium ? (
                         <>
-                          <div className="border-t pt-4">
-                            <div className="flex items-center gap-2 mb-4">
-                              <Icon name="Target" size={20} className="text-primary" />
-                              <h3 className="font-semibold text-lg">Результаты профориентационного теста</h3>
-                            </div>
-                            
-                            <div className="space-y-4">
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-2">Рекомендованная категория:</p>
-                                <Badge variant="default" className="text-base py-1 px-3">
-                                  {candidate.testResult}
-                                </Badge>
+                          <div className="border-t pt-6">
+                            <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border border-primary/20">
+                              <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-primary/20 p-3 rounded-full">
+                                  <Icon name="Target" size={24} className="text-primary" />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-xl">Профориентационный тест</h3>
+                                  <p className="text-sm text-muted-foreground">Детальные результаты тестирования</p>
+                                </div>
                               </div>
                               
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-2">Процент совпадения:</p>
-                                <div className="flex items-center gap-2">
-                                  <div className="flex-1 bg-secondary rounded-full h-2">
-                                    <div 
-                                      className="bg-primary h-2 rounded-full transition-all"
-                                      style={{ width: `${candidate.testScore || 0}%` }}
-                                    />
+                              <div className="space-y-6">
+                                <div className="bg-card rounded-lg p-5 border border-border shadow-sm">
+                                  <div className="flex items-start gap-3 mb-3">
+                                    <Icon name="Award" size={20} className="text-primary mt-1" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-muted-foreground mb-2">Рекомендованное направление</p>
+                                      <Badge variant="default" className="text-base py-2 px-4 bg-gradient-to-r from-primary to-primary/80">
+                                        {candidate.testResult}
+                                      </Badge>
+                                    </div>
                                   </div>
-                                  <span className="font-semibold">{candidate.testScore || 0}%</span>
                                 </div>
-                              </div>
-                              
-                              {candidate.testDate && (
-                                <div>
-                                  <p className="text-sm text-muted-foreground mb-2">Дата прохождения:</p>
-                                  <p className="font-medium">{new Date(candidate.testDate).toLocaleDateString('ru-RU')}</p>
-                                </div>
-                              )}
-                              
-                              {candidate.testAnswers && (
-                                <div>
-                                  <p className="text-sm text-muted-foreground mb-2">Ответы на вопросы теста:</p>
-                                  <div className="bg-secondary/30 p-4 rounded-lg space-y-3 max-h-64 overflow-y-auto">
-                                    {candidate.testAnswers.map((answer: any, idx: number) => (
-                                      <div key={idx} className="text-sm">
-                                        <p className="font-medium mb-1">{idx + 1}. {answer.question}</p>
-                                        <p className="text-muted-foreground pl-4">→ {answer.answer}</p>
+                                
+                                <div className="bg-card rounded-lg p-5 border border-border shadow-sm">
+                                  <div className="flex items-start gap-3">
+                                    <Icon name="TrendingUp" size={20} className="text-green-500 mt-1" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-muted-foreground mb-3">Уровень соответствия профилю</p>
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                          <div className="flex-1 bg-secondary rounded-full h-3 overflow-hidden">
+                                            <div 
+                                              className="bg-gradient-to-r from-green-500 to-primary h-3 rounded-full transition-all duration-500 shadow-sm"
+                                              style={{ width: `${candidate.testScore || 0}%` }}
+                                            />
+                                          </div>
+                                          <span className="font-bold text-xl min-w-[60px] text-right">{candidate.testScore || 0}%</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                          {candidate.testScore >= 80 ? '🌟 Отличное соответствие' : 
+                                           candidate.testScore >= 60 ? '✓ Хорошее соответствие' : 
+                                           candidate.testScore >= 40 ? '○ Среднее соответствие' : 
+                                           '△ Низкое соответствие'}
+                                        </p>
                                       </div>
-                                    ))}
+                                    </div>
                                   </div>
                                 </div>
-                              )}
+                                
+                                {candidate.testDate && (
+                                  <div className="bg-card rounded-lg p-5 border border-border shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                      <Icon name="Calendar" size={20} className="text-blue-500" />
+                                      <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Дата прохождения теста</p>
+                                        <p className="font-semibold text-lg">{new Date(candidate.testDate).toLocaleDateString('ru-RU', { 
+                                          day: 'numeric', 
+                                          month: 'long', 
+                                          year: 'numeric' 
+                                        })}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {candidate.testAnswers && candidate.testAnswers.length > 0 && (
+                                  <div className="bg-card rounded-lg p-5 border border-border shadow-sm">
+                                    <div className="flex items-start gap-3 mb-4">
+                                      <Icon name="MessageSquare" size={20} className="text-purple-500 mt-1" />
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium text-muted-foreground mb-1">Ответы кандидата</p>
+                                        <p className="text-xs text-muted-foreground">Детальный анализ ответов на вопросы теста</p>
+                                      </div>
+                                    </div>
+                                    <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                      {candidate.testAnswers.map((answer: any, idx: number) => (
+                                        <div key={idx} className="bg-secondary/30 p-4 rounded-lg border border-border/50 hover:bg-secondary/40 transition-colors">
+                                          <div className="flex items-start gap-3">
+                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center mt-0.5">
+                                              {idx + 1}
+                                            </span>
+                                            <div className="flex-1 space-y-2">
+                                              <p className="font-medium text-sm leading-relaxed">{answer.question}</p>
+                                              <div className="flex items-start gap-2 bg-card/50 p-2 rounded">
+                                                <Icon name="ArrowRight" size={14} className="text-primary mt-0.5 flex-shrink-0" />
+                                                <p className="text-sm text-muted-foreground">{answer.answer}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </>
