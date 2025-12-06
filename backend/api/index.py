@@ -863,6 +863,74 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
         
+        # === LOGIN API ===
+        if resource == 'login':
+            if method == 'POST':
+                body_data = json.loads(event.get('body', '{}'))
+                email = str(body_data.get('email', '')).replace("'", "''")
+                password = str(body_data.get('password', '')).replace("'", "''")
+                
+                if not email or not password:
+                    return {
+                        'statusCode': 400,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Email and password required'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Login attempt for email: {email}")
+                
+                cur.execute(f"""
+                    SELECT id, email, full_name, password_hash,
+                           EXTRACT(YEAR FROM AGE(date_of_birth))::int as age,
+                           phone, test_result, role, created_at
+                    FROM t_p86122027_youth_job_portal.users
+                    WHERE email = '{email}'
+                """)
+                
+                row = cur.fetchone()
+                
+                if not row:
+                    print(f"User not found: {email}")
+                    return {
+                        'statusCode': 401,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Invalid credentials'}),
+                        'isBase64Encoded': False
+                    }
+                
+                db_password = row[3]
+                
+                if db_password != password:
+                    print(f"Invalid password for: {email}")
+                    return {
+                        'statusCode': 401,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Invalid credentials'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Login successful for: {email}")
+                
+                user_data = {
+                    'id': str(row[0]),
+                    'email': row[1],
+                    'name': row[2],
+                    'age': row[4],
+                    'phone': row[5],
+                    'testResult': row[6],
+                    'role': row[7] if row[7] else 'user',
+                    'completedTest': bool(row[6]),
+                    'createdAt': row[8].isoformat() if row[8] else None
+                }
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({'user': user_data}),
+                    'isBase64Encoded': False
+                }
+        
         return {
             'statusCode': 404,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},

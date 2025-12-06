@@ -75,15 +75,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users');
+      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
       if (!response.ok) {
         console.error('Login failed:', response.status);
         return false;
       }
       
       const data = await response.json();
-      const users = data.users || [];
-      const foundUser = users.find((u: any) => u.email === email && u.password_hash === password);
+      const foundUser = data.user;
       
       if (foundUser) {
         const userToSet = {
