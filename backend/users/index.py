@@ -10,26 +10,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     method: str = event.get('httpMethod', 'GET')
     
-    cors_headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Max-Age': '86400'
-    }
-    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': cors_headers,
-            'body': '',
-            'isBase64Encoded': False
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Max-Age': '86400'
+            },
+            'body': ''
         }
     
     db_url = os.environ.get('DATABASE_URL')
+    conn = psycopg2.connect(db_url)
+    cur = conn.cursor()
     
     try:
-        conn = psycopg2.connect(db_url)
-        cur = conn.cursor()
         if method == 'GET':
             cur.execute("""
                 SELECT id, email, full_name, 
@@ -55,9 +52,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 200,
-                'headers': {**cors_headers, 'Content-Type': 'application/json'},
-                'body': json.dumps({'users': users}),
-                'isBase64Encoded': False
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'users': users})
             }
         
         if method == 'POST':
@@ -97,7 +96,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 201,
-                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
                 'body': json.dumps({
                     'id': str(user_id),
                     'email': email,
@@ -105,27 +107,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'age': age,
                     'phone': phone,
                     'completedTest': False
-                }),
-                'isBase64Encoded': False
+                })
             }
         
         return {
             'statusCode': 405,
-            'headers': cors_headers,
-            'body': json.dumps({'error': 'Method not allowed'}),
-            'isBase64Encoded': False
-        }
-    
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'error': str(e)}),
-            'isBase64Encoded': False
+            'headers': {'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'})
         }
     
     finally:
-        if 'cur' in locals():
-            cur.close()
-        if 'conn' in locals():
-            conn.close()
+        cur.close()
+        conn.close()

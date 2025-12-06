@@ -8,17 +8,6 @@ import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import VacancyMap from '@/components/VacancyMap';
 import { Job } from '@/data/jobs';
-import { loadJobsFromDatabase } from '@/utils/syncData';
-import '@/utils/migrateToDb';
-import { runRestore } from '@/utils/runRestore';
-
-// Сделать доступным глобально для вызова из консоли
-if (typeof window !== 'undefined') {
-  (window as any).runRestore = () => {
-    runRestore();
-  };
-  console.log('💡 Для восстановления 30 вакансий выполните в консоли: runRestore()');
-}
 
 const Vacancies = () => {
   const { user } = useAuth();
@@ -27,33 +16,9 @@ const Vacancies = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    let autoRestoreTriggered = false;
-    
-    const loadJobs = async () => {
-      const dbJobs = await loadJobsFromDatabase();
+    const loadJobs = () => {
       const stored = localStorage.getItem('jobs');
-      
-      if (dbJobs.length > 0) {
-        console.log('Loaded jobs from DB:', dbJobs.length);
-        setAllJobs(dbJobs);
-        localStorage.setItem('jobs', JSON.stringify(dbJobs));
-        
-        if (dbJobs.length === 1 && !autoRestoreTriggered) {
-          const restored = localStorage.getItem('default_jobs_restored');
-          if (restored !== 'true') {
-            console.log('🔄 В базе только 1 вакансия, запускаю автоматическое восстановление...');
-            autoRestoreTriggered = true;
-            localStorage.setItem('default_jobs_restored', 'restoring');
-            runRestore().then(() => {
-              console.log('✅ Автоматическое восстановление завершено');
-            }).catch((err) => {
-              console.error('❌ Ошибка автовосстановления:', err);
-              localStorage.removeItem('default_jobs_restored');
-              autoRestoreTriggered = false;
-            });
-          }
-        }
-      } else if (stored) {
+      if (stored) {
         try {
           const jobs = JSON.parse(stored);
           setAllJobs(jobs);
@@ -69,7 +34,7 @@ const Vacancies = () => {
     };
 
     loadJobs();
-    const interval = setInterval(loadJobs, 3000);
+    const interval = setInterval(loadJobs, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,9 +44,7 @@ const Vacancies = () => {
                            job.company.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = !selectedType || job.type === selectedType;
       
-      const isAdmin = user?.email === 'mininkonstantin@gmail.com';
-      
-      if (!isAdmin && job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
+      if (job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
         return false;
       }
       

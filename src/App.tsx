@@ -15,7 +15,6 @@ import UserSubscription from "./pages/UserSubscription";
 import Profile from "./pages/Profile";
 import EmployerProfile from "./pages/EmployerProfile";
 import CreateJob from "./pages/CreateJob";
-import EditJob from "./pages/EditJob";
 import Test from "./pages/Test";
 import Vacancies from "./pages/Vacancies";
 import JobDetails from "./pages/JobDetails";
@@ -44,7 +43,6 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/employer-profile" element={<EmployerProfile />} />
               <Route path="/create-job" element={<CreateJob />} />
-              <Route path="/edit-job/:id" element={<EditJob />} />
               <Route path="/test" element={<Test />} />
               <Route path="/vacancies" element={<Vacancies />} />
               <Route path="/job/:id" element={<JobDetails />} />

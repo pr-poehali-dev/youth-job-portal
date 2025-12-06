@@ -17,48 +17,40 @@ const JobDetails = () => {
   useEffect(() => {
     if (!id) return;
     
-    // Try both number and string ID formats
-    const jobIdNum = Number(id);
-    const jobIdStr = id;
+    const jobId = Number(id);
     
-    if (jobsDetails[jobIdNum]) {
-      setJob(jobsDetails[jobIdNum]);
+    if (jobsDetails[jobId]) {
+      setJob(jobsDetails[jobId]);
     } else {
       const stored = localStorage.getItem('jobs');
       if (stored) {
         const allJobs: Job[] = JSON.parse(stored);
-        const foundJob = allJobs.find(j => j.id === jobIdNum || j.id.toString() === jobIdStr);
+        const foundJob = allJobs.find(j => j.id === jobId);
         
         if (foundJob) {
           const jobDetail: JobDetailsType = {
             ...foundJob,
-            description: foundJob.description || 'Присоединяйтесь к нашей команде! Мы ищем ответственного и активного сотрудника для работы в комфортных условиях.',
-            requirements: foundJob.requirements && foundJob.requirements.length > 0 
-              ? foundJob.requirements 
-              : [
-                  `Возраст ${foundJob.ageRange} лет`,
-                  'Ответственность и пунктуальность',
-                  'Готовность работать в команде',
-                  'Желание учиться и развиваться'
-                ],
-            responsibilities: foundJob.responsibilities && foundJob.responsibilities.length > 0
-              ? foundJob.responsibilities
-              : [
-                  'Выполнение основных рабочих задач',
-                  'Соблюдение правил и стандартов компании',
-                  'Взаимодействие с клиентами',
-                  'Поддержание порядка на рабочем месте'
-                ],
-            conditions: foundJob.conditions && foundJob.conditions.length > 0
-              ? foundJob.conditions
-              : [
-                  `График: ${foundJob.type}`,
-                  'Официальное оформление',
-                  'Обучение за счёт компании',
-                  'Дружный коллектив',
-                  'Возможность карьерного роста'
-                ],
-            contact: foundJob.contact || {
+            description: 'Присоединяйтесь к нашей команде! Мы ищем ответственного и активного сотрудника для работы в комфортных условиях.',
+            requirements: [
+              `Возраст ${foundJob.ageRange} лет`,
+              'Ответственность и пунктуальность',
+              'Готовность работать в команде',
+              'Желание учиться и развиваться'
+            ],
+            responsibilities: [
+              'Выполнение основных рабочих задач',
+              'Соблюдение правил и стандартов компании',
+              'Взаимодействие с клиентами',
+              'Поддержание порядка на рабочем месте'
+            ],
+            conditions: [
+              `График: ${foundJob.type}`,
+              'Официальное оформление',
+              'Обучение за счёт компании',
+              'Дружный коллектив',
+              'Возможность карьерного роста'
+            ],
+            contact: {
               phone: '+7 (391) 234-56-78',
               email: 'hr@company.ru'
             }

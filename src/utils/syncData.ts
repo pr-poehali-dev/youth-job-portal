@@ -32,51 +32,14 @@ export async function loadJobsFromDatabase(): Promise<any[]> {
 
 export async function saveJobToDatabase(job: any): Promise<boolean> {
   try {
-    console.log('Sending job to API:', job.title);
     const response = await fetch(JOBS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(job)
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Failed to save job ${job.title}:`, response.status, errorText);
-      return false;
-    }
-    
-    console.log(`Successfully saved job: ${job.title}`);
-    return true;
-  } catch (error) {
-    console.error(`Fetch error for ${job.title}:`, error);
-    return false;
-  }
-}
-
-export async function updateJobInDatabase(job: any): Promise<boolean> {
-  try {
-    const response = await fetch(JOBS_API, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(job)
-    });
     return response.ok;
   } catch (error) {
-    console.error('Error updating job:', error);
-    return false;
-  }
-}
-
-export async function deleteJobFromDatabase(jobId: string | number): Promise<boolean> {
-  try {
-    const response = await fetch(JOBS_API, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: jobId })
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Error deleting job:', error);
+    console.error('Error saving job:', error);
     return false;
   }
 }

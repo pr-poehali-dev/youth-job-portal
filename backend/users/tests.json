@@ -15,7 +15,7 @@
       "method": "POST",
       "path": "/",
       "body": {
-        "email": "testuser_{{timestamp}}@example.com",
+        "email": "test@example.com",
         "password": "password123",
         "name": "Test User",
         "age": 16
