@@ -12,8 +12,12 @@ export async function restoreDefaultJobs() {
       const jobId = typeof job.id === 'number' ? job.id : parseInt(job.id as string);
       const detailedJob = jobsDetails[jobId];
       
+      // Генерируем уникальный ID на основе timestamp + базовый ID
+      const uniqueId = `${Date.now()}_${jobId}`;
+      
       const enrichedJob = detailedJob ? {
         ...job,
+        id: uniqueId,
         description: detailedJob.description,
         requirements: detailedJob.requirements,
         responsibilities: detailedJob.responsibilities,
@@ -23,6 +27,7 @@ export async function restoreDefaultJobs() {
         employerEmail: 'mininkonstantin@gmail.com'
       } : {
         ...job,
+        id: uniqueId,
         description: `Работа в компании ${job.company}`,
         requirements: [`Возраст ${job.ageRange} лет`, 'Ответственность', 'Пунктуальность'],
         responsibilities: ['Выполнение рабочих задач', 'Соблюдение стандартов'],
@@ -39,17 +44,17 @@ export async function restoreDefaultJobs() {
       
       if (success) {
         successCount++;
-        console.log(`✓ Restored job ${job.id}: ${job.title}`);
+        console.log(`✓ Restored job ${job.title}`);
       } else {
         failCount++;
-        console.error(`✗ Failed to restore job ${job.id}: ${job.title}`);
+        console.error(`✗ Failed to restore job ${job.title}`);
       }
       
       // Small delay to avoid overwhelming the API
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
       failCount++;
-      console.error(`✗ Error restoring job ${job.id}:`, error);
+      console.error(`✗ Error restoring job ${job.title}:`, error);
     }
   }
   
