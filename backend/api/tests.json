@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Get all users",
+      "method": "GET",
+      "path": "/?resource=users",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "users": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get all jobs",
+      "method": "GET",
+      "path": "/?resource=jobs",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "jobs": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

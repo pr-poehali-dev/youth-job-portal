@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
+      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users');
       if (response.ok) {
         const data = await response.json();
         const users = data.users || [];
@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🚀 Попытка регистрации:', { name, email, age, phone });
       
-      const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009', {
+      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name, age, phone: phone || '' })

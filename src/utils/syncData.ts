@@ -1,7 +1,8 @@
 // Утилиты для синхронизации данных с БД
 
-const JOBS_API = 'https://functions.poehali.dev/45d3fa5f-388c-486d-9dff-ff2e5e7d10b9';
-const APPLICATIONS_API = 'https://functions.poehali.dev/8ff782a6-0660-4548-a99e-bdbbbf8661b5';
+const API_BASE = 'https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523';
+const JOBS_API = `${API_BASE}?resource=jobs`;
+const APPLICATIONS_API = `${API_BASE}?resource=applications`;
 
 export async function syncJobsToDatabase(jobs: any[]) {
   for (const job of jobs) {

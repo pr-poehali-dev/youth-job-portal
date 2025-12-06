@@ -36,7 +36,7 @@ const EmployerProfile = () => {
       }
 
       try {
-        const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
+        const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users');
         if (response.ok) {
           const data = await response.json();
           console.log('Loaded users from DB:', data.users);
