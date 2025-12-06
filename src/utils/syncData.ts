@@ -84,7 +84,7 @@ export async function loadApplicationsFromDatabase(userId?: string, jobId?: stri
     const params = new URLSearchParams();
     if (userId) params.append('user_id', userId);
     if (jobId) params.append('job_id', jobId);
-    if (params.toString()) url += '?' + params.toString();
+    if (params.toString()) url += '&' + params.toString();
     
     const response = await fetch(url);
     if (response.ok) {
