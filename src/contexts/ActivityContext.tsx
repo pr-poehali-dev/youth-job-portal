@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { saveResponseToDatabase } from '@/utils/syncData';
 
 interface Activity {
   id: string;
@@ -56,7 +57,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const addResponse = (jobId: number, jobTitle: string, company: string) => {
+  const addResponse = async (jobId: number, jobTitle: string, company: string) => {
     const newActivity: Activity = {
       id: Date.now().toString(),
       action: 'response',
@@ -65,6 +66,19 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       company,
       timestamp: Date.now()
     };
+    
+    if (user) {
+      await saveResponseToDatabase({
+        userId: user.id,
+        jobId: jobId.toString(),
+        userName: user.name,
+        userEmail: user.email,
+        userAge: user.age,
+        jobTitle,
+        testScore: null,
+        testDate: null
+      });
+    }
     
     const newActivities = [newActivity, ...activities];
     setActivities(newActivities);

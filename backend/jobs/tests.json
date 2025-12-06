@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get all jobs",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "jobs": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

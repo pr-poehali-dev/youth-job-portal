@@ -11,6 +11,7 @@ import ResponsesTab, { ResponseData } from '@/components/employer/ResponsesTab';
 import InterviewsTab, { InterviewData } from '@/components/employer/InterviewsTab';
 import VacanciesTab from '@/components/employer/VacanciesTab';
 import CandidatesTab from '@/components/employer/CandidatesTab';
+import { loadJobsFromDatabase, loadResponsesFromDatabase } from '@/utils/syncData';
 
 const EmployerProfile = () => {
   const { user, logout } = useAuth();
@@ -24,9 +25,14 @@ const EmployerProfile = () => {
     const loadData = async () => {
       if (!user) return;
 
+      const dbJobs = await loadJobsFromDatabase();
       const stored = localStorage.getItem('jobs');
-      const loadedJobs: Job[] = stored ? JSON.parse(stored) : defaultJobs;
+      const localJobs: Job[] = stored ? JSON.parse(stored) : defaultJobs;
+      const loadedJobs = dbJobs.length > 0 ? dbJobs : localJobs;
       setAllJobs(loadedJobs);
+      if (dbJobs.length > 0) {
+        localStorage.setItem('jobs', JSON.stringify(dbJobs));
+      }
 
       try {
         const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
@@ -52,33 +58,11 @@ const EmployerProfile = () => {
         : loadedJobs.filter(job => job.employerId === user.id);
       const employerJobIds = employerJobs.map(job => job.id);
 
-      const allResponses: ResponseData[] = [];
-      const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      localUsers.forEach((u: any) => {
-        if (u.role !== 'employer') {
-          const userActivities = JSON.parse(localStorage.getItem(`activities_${u.id}`) || '[]');
-          const userResponses = userActivities.filter((a: any) => 
-            a.action === 'response' && employerJobIds.includes(a.jobId)
-          );
-          
-          userResponses.forEach((r: any) => {
-            allResponses.push({
-              userId: u.id,
-              userName: u.name,
-              userEmail: u.email,
-              userAge: u.age,
-              jobId: r.jobId,
-              jobTitle: r.jobTitle,
-              timestamp: r.timestamp,
-              testScore: u.testScore,
-              testDate: u.testDate
-            });
-          });
-        }
-      });
-
-      allResponses.sort((a, b) => b.timestamp - a.timestamp);
-      setResponses(allResponses);
+      const dbResponses = await loadResponsesFromDatabase();
+      const relevantResponses = dbResponses.filter((r: any) => 
+        employerJobIds.includes(parseInt(r.jobId))
+      );
+      setResponses(relevantResponses);
 
       const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
       const employerInterviews = allInterviews.filter((interview: InterviewData) => 

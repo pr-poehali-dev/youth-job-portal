@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Job, defaultJobs } from '@/data/jobs';
+import { saveJobToDatabase } from '@/utils/syncData';
 
 const CreateJob = () => {
   const { user } = useAuth();
@@ -66,7 +67,7 @@ const CreateJob = () => {
   const canCreateJob = user.subscription === 'premium' || userJobs.length === 0 || user.email === 'mininkonstantin@gmail.com';
   const canCreatePremium = user.subscription === 'premium' || user.email === 'mininkonstantin@gmail.com';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -81,7 +82,7 @@ const CreateJob = () => {
     }
 
     const newJob = {
-      id: Date.now(),
+      id: Date.now().toString(),
       title,
       company,
       location,
@@ -92,6 +93,7 @@ const CreateJob = () => {
       coordinates: [56.0184, 92.8672] as [number, number],
       isPremium,
       employerId: user.id,
+      employerEmail: user.email,
       description,
       requirements: requirements.split('\n').filter(r => r.trim()),
       responsibilities: responsibilities.split('\n').filter(r => r.trim()),
@@ -101,6 +103,8 @@ const CreateJob = () => {
         email
       }
     };
+
+    await saveJobToDatabase(newJob);
 
     const updatedJobs = [...allJobs, newJob];
     localStorage.setItem('jobs', JSON.stringify(updatedJobs));
