@@ -18,10 +18,8 @@ const JobDetails = () => {
   useEffect(() => {
     if (!id) return;
     
-    const jobId = Number(id);
-    
     const loadJob = async () => {
-      const dbJob = await loadJobByIdFromDatabase(jobId);
+      const dbJob = await loadJobByIdFromDatabase(id);
       if (dbJob) {
         const jobDetail: JobDetailsType = {
           id: dbJob.id,
