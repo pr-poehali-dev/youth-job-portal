@@ -82,32 +82,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    if (users.some((u: any) => u.email === email)) {
+    try {
+      const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, age, phone: phone || '' })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Registration failed:', errorData);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log('User registered successfully:', data);
+      
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const newUser = {
+        id: data.id,
+        name,
+        email,
+        password,
+        age,
+        phone,
+        completedTest: false,
+        role: 'user' as const,
+        subscription: null
+      };
+
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
       return false;
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      password,
-      age,
-      phone,
-      completedTest: false,
-      role: 'user' as const,
-      subscription: null
-    };
-
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-    
-    return true;
   };
 
   const registerEmployer = async (name: string, email: string, password: string, companyName: string): Promise<boolean> => {

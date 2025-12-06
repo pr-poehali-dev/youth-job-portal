@@ -28,9 +28,24 @@ const EmployerProfile = () => {
       const loadedJobs: Job[] = stored ? JSON.parse(stored) : defaultJobs;
       setAllJobs(loadedJobs);
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const usersList = users.filter((u: any) => u.role !== 'employer');
-      setAllUsers(usersList);
+      try {
+        const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Loaded users from DB:', data.users);
+          setAllUsers(data.users || []);
+        } else {
+          console.error('Failed to load users from DB');
+          const users = JSON.parse(localStorage.getItem('users') || '[]');
+          const usersList = users.filter((u: any) => u.role !== 'employer');
+          setAllUsers(usersList);
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const usersList = users.filter((u: any) => u.role !== 'employer');
+        setAllUsers(usersList);
+      }
 
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
         ? loadedJobs
