@@ -112,7 +112,7 @@ export async function loadApplicationsFromDatabase(userId?: string, jobId?: stri
 
 export async function loadJobByIdFromDatabase(jobId: number | string): Promise<any | null> {
   try {
-    const response = await fetch(`${JOBS_API}?id=${jobId}`);
+    const response = await fetch(`${JOBS_API}&id=${jobId}`);
     if (response.ok) {
       const data = await response.json();
       const jobs = data.jobs || [];
