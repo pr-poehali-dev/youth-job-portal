@@ -76,47 +76,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users');
-      if (response.ok) {
-        const data = await response.json();
-        const users = data.users || [];
-        const foundUser = users.find((u: any) => u.email === email && u.password_hash === password);
-        
-        if (foundUser) {
-          const userToSet = {
-            id: foundUser.id,
-            name: foundUser.name,
-            email: foundUser.email,
-            age: foundUser.age,
-            phone: foundUser.phone,
-            completedTest: foundUser.completedTest,
-            testResult: foundUser.testResult,
-            role: foundUser.role || 'user',
-            subscription: null
-          };
-          setUser(userToSet);
-          localStorage.setItem('user', JSON.stringify(userToSet));
-          return true;
-        }
+      if (!response.ok) {
+        console.error('Login failed:', response.status);
+        return false;
       }
+      
+      const data = await response.json();
+      const users = data.users || [];
+      const foundUser = users.find((u: any) => u.email === email && u.password_hash === password);
+      
+      if (foundUser) {
+        const userToSet = {
+          id: foundUser.id,
+          name: foundUser.name,
+          email: foundUser.email,
+          age: foundUser.age,
+          phone: foundUser.phone,
+          completedTest: foundUser.completedTest,
+          testResult: foundUser.testResult,
+          role: foundUser.role || 'user',
+          subscription: foundUser.subscription || null,
+          companyName: foundUser.company_name
+        };
+        setUser(userToSet);
+        localStorage.setItem('user', JSON.stringify(userToSet));
+        return true;
+      }
+      
+      return false;
     } catch (error) {
-      console.warn('API недоступен, использую localStorage:', error);
+      console.error('Login error:', error);
+      return false;
     }
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      return true;
-    }
-    return false;
   };
 
   const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<RegisterResult> => {
     try {
-      console.log('🚀 Попытка регистрации:', { name, email, age, phone });
+      console.log('🚀 Регистрация через API:', { name, email, age, phone });
       
       const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users', {
         method: 'POST',
@@ -124,77 +120,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password, name, age, phone: phone || '' })
       });
 
-      console.log('📡 Ответ сервера:', response.status, response.statusText);
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ Регистрация не удалась:', errorData);
+        console.error('❌ Ошибка регистрации:', errorData);
         
         if (errorData.error === 'Email already exists') {
-          console.log('⚠️ Email уже существует в базе данных');
           return { success: false, error: 'Пользователь с таким email уже существует' };
         }
-        throw new Error(`API error: ${response.status}`);
+        return { success: false, error: 'Ошибка сервера при регистрации' };
       }
 
       const data = await response.json();
-      console.log('✅ Пользователь успешно зарегистрирован в БД:', data);
+      console.log('✅ Регистрация успешна:', data);
       
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      const existingIndex = users.findIndex((u: any) => u.email === email);
-      if (existingIndex !== -1) {
-        console.log('🔄 Обновляю существующего пользователя в localStorage');
-        users[existingIndex] = {
-          id: data.id,
-          name,
-          email,
-          password,
-          age,
-          phone,
-          completedTest: false,
-          role: 'user' as const,
-          subscription: null
-        };
-      } else {
-        console.log('➕ Добавляю нового пользователя в localStorage');
-        const newUser = {
-          id: data.id,
-          name,
-          email,
-          password,
-          age,
-          phone,
-          completedTest: false,
-          role: 'user' as const,
-          subscription: null
-        };
-        users.push(newUser);
-      }
-
-      localStorage.setItem('users', JSON.stringify(users));
-
-      const userToSet = users.find((u: any) => u.email === email);
-      const { password: _, ...userWithoutPassword } = userToSet;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      
-      console.log('✅ Регистрация завершена успешно');
-      return { success: true };
-    } catch (error) {
-      console.warn('⚠️ API недоступен, использую localStorage:', error);
-      
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      
-      if (users.some((u: any) => u.email === email)) {
-        return { success: false, error: 'Пользователь с таким email уже существует' };
-      }
-      
-      const newUser = {
-        id: Date.now().toString(),
+      const userToSet = {
+        id: data.id,
         name,
         email,
-        password,
         age,
         phone,
         completedTest: false,
@@ -202,45 +144,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subscription: null
       };
       
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
+      setUser(userToSet);
+      localStorage.setItem('user', JSON.stringify(userToSet));
       
-      const { password: _, ...userWithoutPassword } = newUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      
-      console.log('✅ Регистрация через localStorage успешна');
       return { success: true };
+    } catch (error) {
+      console.error('❌ Критическая ошибка:', error);
+      return { success: false, error: 'Не удалось подключиться к серверу' };
     }
   };
 
   const registerEmployer = async (name: string, email: string, password: string, companyName: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    if (users.some((u: any) => u.email === email)) {
+    try {
+      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=employers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name, companyName })
+      });
+
+      if (!response.ok) {
+        console.error('Employer registration failed:', response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      const userToSet = {
+        id: data.id,
+        name,
+        email,
+        age: 25,
+        completedTest: true,
+        role: 'employer' as const,
+        companyName,
+        subscription: null
+      };
+
+      setUser(userToSet);
+      localStorage.setItem('user', JSON.stringify(userToSet));
+      
+      return true;
+    } catch (error) {
+      console.error('Employer registration error:', error);
       return false;
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name,
-      email,
-      password,
-      age: 25,
-      completedTest: true,
-      role: 'employer' as const,
-      companyName,
-      subscription: null
-    };
-
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-    
-    return true;
   };
 
   const logout = () => {

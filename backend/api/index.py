@@ -769,6 +769,100 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
         
+        # === INTERVIEWS API ===
+        elif resource == 'interviews':
+            if method == 'GET':
+                user_id = query_params.get('user_id', '')
+                job_id = query_params.get('job_id', '')
+                
+                print(f"Fetching interviews - user_id: {user_id}, job_id: {job_id}")
+                
+                filters = []
+                if user_id:
+                    user_id_safe = str(user_id).replace("'", "''")
+                    filters.append(f"user_id = '{user_id_safe}'")
+                if job_id:
+                    job_id_safe = str(job_id).replace("'", "''")
+                    filters.append(f"job_id = '{job_id_safe}'")
+                
+                where_clause = f"WHERE {' AND '.join(filters)}" if filters else ""
+                
+                cur.execute(f"""
+                    SELECT id, user_id, job_id, user_name, user_email, user_age,
+                           job_title, interview_date, location, notes, created_at
+                    FROM t_p86122027_youth_job_portal.interviews
+                    {where_clause}
+                    ORDER BY interview_date DESC
+                """)
+                
+                rows = cur.fetchall()
+                interviews = []
+                for row in rows:
+                    interviews.append({
+                        'id': row[0],
+                        'userId': str(row[1]),
+                        'jobId': str(row[2]),
+                        'userName': row[3],
+                        'userEmail': row[4],
+                        'userAge': row[5],
+                        'jobTitle': row[6],
+                        'date': row[7].isoformat() if row[7] else None,
+                        'location': row[8],
+                        'notes': row[9],
+                        'timestamp': int(row[10].timestamp() * 1000) if row[10] else None
+                    })
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({'interviews': interviews}),
+                    'isBase64Encoded': False
+                }
+            
+            if method == 'POST':
+                body_data = json.loads(event.get('body', '{}'))
+                
+                user_id = str(body_data.get('userId', '')).replace("'", "''")
+                job_id = str(body_data.get('jobId', '')).replace("'", "''")
+                user_name = str(body_data.get('userName', '')).replace("'", "''")
+                user_email = str(body_data.get('userEmail', '')).replace("'", "''")
+                user_age = int(body_data.get('userAge', 0))
+                job_title = str(body_data.get('jobTitle', '')).replace("'", "''")
+                interview_date = str(body_data.get('date', '')).replace("'", "''")
+                location = str(body_data.get('location', '')).replace("'", "''")
+                notes = str(body_data.get('notes', '')).replace("'", "''")
+                
+                print(f"Creating interview for user {user_id} on job {job_id}")
+                
+                cur.execute(f"""
+                    INSERT INTO t_p86122027_youth_job_portal.interviews 
+                    (user_id, job_id, user_name, user_email, user_age, job_title, 
+                     interview_date, location, notes, created_at)
+                    VALUES ('{user_id}', '{job_id}', '{user_name}', '{user_email}', 
+                            {user_age}, '{job_title}', '{interview_date}', '{location}', 
+                            '{notes}', NOW())
+                    RETURNING id, created_at
+                """)
+                
+                result = cur.fetchone()
+                interview_id = result[0]
+                created_at = result[1]
+                conn.commit()
+                
+                print(f"Interview created with id: {interview_id}")
+                
+                return {
+                    'statusCode': 201,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'id': interview_id,
+                        'userId': user_id,
+                        'jobId': job_id,
+                        'createdAt': created_at.isoformat() if created_at else None
+                    }),
+                    'isBase64Encoded': False
+                }
+        
         return {
             'statusCode': 404,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},

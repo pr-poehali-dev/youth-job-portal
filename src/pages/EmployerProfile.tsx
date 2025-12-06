@@ -39,19 +39,16 @@ const EmployerProfile = () => {
         const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users');
         if (response.ok) {
           const data = await response.json();
-          console.log('Loaded users from DB:', data.users);
-          setAllUsers(data.users || []);
-        } else {
-          console.error('Failed to load users from DB');
-          const users = JSON.parse(localStorage.getItem('users') || '[]');
-          const usersList = users.filter((u: any) => u.role !== 'employer');
+          const usersList = (data.users || []).filter((u: any) => u.role !== 'employer');
+          console.log('✅ Загружено кандидатов из БД:', usersList.length);
           setAllUsers(usersList);
+        } else {
+          console.error('❌ Ошибка загрузки пользователей:', response.status);
+          setAllUsers([]);
         }
       } catch (error) {
-        console.error('Error loading users:', error);
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const usersList = users.filter((u: any) => u.role !== 'employer');
-        setAllUsers(usersList);
+        console.error('❌ Критическая ошибка при загрузке:', error);
+        setAllUsers([]);
       }
 
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
@@ -65,12 +62,24 @@ const EmployerProfile = () => {
       );
       setResponses(relevantResponses);
 
-      const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
-      const employerInterviews = allInterviews.filter((interview: InterviewData) => 
-        employerJobIds.includes(interview.jobId)
-      );
-      employerInterviews.sort((a: InterviewData, b: InterviewData) => b.timestamp - a.timestamp);
-      setInterviews(employerInterviews);
+      try {
+        const interviewsResponse = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=interviews');
+        if (interviewsResponse.ok) {
+          const data = await interviewsResponse.json();
+          const allDbInterviews = data.interviews || [];
+          const employerInterviews = allDbInterviews.filter((interview: any) => 
+            employerJobIds.includes(parseInt(interview.jobId))
+          );
+          employerInterviews.sort((a: any, b: any) => b.timestamp - a.timestamp);
+          setInterviews(employerInterviews);
+          console.log('✅ Загружено собеседований из БД:', employerInterviews.length);
+        } else {
+          setInterviews([]);
+        }
+      } catch (error) {
+        console.error('❌ Ошибка загрузки собеседований:', error);
+        setInterviews([]);
+      }
     };
 
     loadData();

@@ -17,7 +17,8 @@ interface Message {
   timestamp: number;
 }
 
-const MESSAGES_API = 'https://functions.poehali.dev/fe0b272c-332c-4195-a2f5-7d1316c93d7c';
+const API_BASE = 'https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523';
+const MESSAGES_API = `${API_BASE}?resource=messages`;
 const EMPLOYER_ID = '6';
 
 const jobsInfo = Object.fromEntries(
@@ -143,35 +144,45 @@ const Chat = () => {
     }
   };
 
-  const scheduleInterview = () => {
-    if (!interviewDate || !interviewTime || !user) return;
+  const scheduleInterview = async () => {
+    if (!interviewDate || !interviewTime || !user || !chatPartnerId) return;
 
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const responseUser = users.find((u: any) => u.id === chatPartnerId);
+    try {
+      const usersResponse = await fetch(`${API_BASE}?resource=users`);
+      if (!usersResponse.ok) return;
+      
+      const usersData = await usersResponse.json();
+      const responseUser = usersData.users.find((u: any) => u.id === chatPartnerId);
 
-    if (!responseUser) return;
+      if (!responseUser) return;
 
-    const interviewData = {
-      userId: responseUser.id,
-      userName: responseUser.name,
-      userEmail: responseUser.email,
-      jobId: Number(id),
-      jobTitle: jobInfo?.title || '',
-      date: interviewDate,
-      time: interviewTime,
-      status: 'pending',
-      timestamp: Date.now()
-    };
+      const interviewDateTime = `${interviewDate}T${interviewTime}:00`;
+      
+      const response = await fetch(`${API_BASE}?resource=interviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: responseUser.id,
+          userName: responseUser.name,
+          userEmail: responseUser.email,
+          userAge: responseUser.age || 16,
+          jobId: Number(id),
+          jobTitle: jobInfo?.title || '',
+          date: interviewDateTime,
+          location: 'Офис компании',
+          notes: 'Собеседование назначено работодателем'
+        })
+      });
 
-    const allInterviews = JSON.parse(localStorage.getItem('all_interviews') || '[]');
-    allInterviews.push(interviewData);
-    localStorage.setItem('all_interviews', JSON.stringify(allInterviews));
-
-    sendMessageToChat(`📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`);
-
-    setIsDialogOpen(false);
-    setInterviewDate('');
-    setInterviewTime('');
+      if (response.ok) {
+        sendMessageToChat(`📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`);
+        setIsDialogOpen(false);
+        setInterviewDate('');
+        setInterviewTime('');
+      }
+    } catch (error) {
+      console.error('Error scheduling interview:', error);
+    }
   };
 
   const requestInterview = () => {
