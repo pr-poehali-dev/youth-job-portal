@@ -13,6 +13,7 @@ import VacanciesTab from '@/components/employer/VacanciesTab';
 import CandidatesTab from '@/components/employer/CandidatesTab';
 import { loadJobsFromDatabase, loadApplicationsFromDatabase } from '@/utils/syncData';
 
+
 const EmployerProfile = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
