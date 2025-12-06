@@ -70,6 +70,13 @@ const Chat = () => {
         params.append('receiver_id', chatPartnerId!);
         params.append('job_id', id);
         
+        console.log('📨 Загрузка сообщений:', {
+          sender_id: user.id,
+          receiver_id: chatPartnerId,
+          job_id: id,
+          userRole: user.role
+        });
+        
         const response = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (response.ok) {
           const data = await response.json();

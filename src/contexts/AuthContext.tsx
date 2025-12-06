@@ -37,7 +37,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsed = JSON.parse(storedUser);
+      
+      if (parsed.id === 'employer_admin') {
+        console.log('🔄 Обнаружен старый аккаунт работодателя, очищаю...');
+        localStorage.removeItem('user');
+        setUser(null);
+      } else {
+        setUser(parsed);
+      }
     }
   }, []);
 
