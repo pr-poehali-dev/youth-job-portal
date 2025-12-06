@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -11,6 +11,7 @@ interface VacancyMapProps {
 
 const VacancyMap = ({ jobs, recommendedCategory }: VacancyMapProps) => {
   const [map, setMap] = useState<any>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -19,7 +20,12 @@ const VacancyMap = ({ jobs, recommendedCategory }: VacancyMapProps) => {
       const L = (await import('leaflet')).default;
       await import('leaflet/dist/leaflet.css');
 
-      if (map) return;
+      if (!mapRef.current) return;
+      
+      const mapContainer = mapRef.current;
+      if (mapContainer._leaflet_id) {
+        return;
+      }
 
       const customIcon = new L.Icon({
         iconUrl: 'data:image/svg+xml;base64,' + btoa(`
@@ -33,10 +39,7 @@ const VacancyMap = ({ jobs, recommendedCategory }: VacancyMapProps) => {
         popupAnchor: [0, -40],
       });
 
-      const mapContainer = document.getElementById('map');
-      if (!mapContainer || mapContainer.hasChildNodes()) return;
-
-      const leafletMap = L.map('map').setView([56.0153, 92.8932], 12);
+      const leafletMap = L.map(mapContainer).setView([56.0153, 92.8932], 12);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -88,11 +91,11 @@ const VacancyMap = ({ jobs, recommendedCategory }: VacancyMapProps) => {
         setMap(null);
       }
     };
-  }, [jobs, recommendedCategory]);
+  }, []);
 
   return (
     <div 
-      id="map" 
+      ref={mapRef}
       style={{ 
         height: '500px', 
         width: '100%', 
