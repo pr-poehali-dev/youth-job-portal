@@ -65,13 +65,11 @@ const Chat = () => {
       
       try {
         const params = new URLSearchParams();
-        if (user.role === 'employer') {
-          params.append('sender_id', chatPartnerId);
-          params.append('receiver_id', user.id);
-        } else {
-          params.append('sender_id', user.id);
-          params.append('receiver_id', EMPLOYER_ID);
-        }
+        const userId1 = user.role === 'employer' ? user.id : user.id;
+        const userId2 = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
+        
+        params.append('sender_id', userId1);
+        params.append('receiver_id', userId2);
         
         const response = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (response.ok) {
@@ -124,13 +122,11 @@ const Chat = () => {
         setInputValue('');
         
         const params = new URLSearchParams();
-        if (user.role === 'employer') {
-          params.append('sender_id', chatPartnerId!);
-          params.append('receiver_id', user.id);
-        } else {
-          params.append('sender_id', user.id);
-          params.append('receiver_id', EMPLOYER_ID);
-        }
+        const userId1 = user.role === 'employer' ? user.id : user.id;
+        const userId2 = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
+        
+        params.append('sender_id', userId1);
+        params.append('receiver_id', userId2);
         
         const refreshResponse = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (refreshResponse.ok) {
