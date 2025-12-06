@@ -37,14 +37,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      
-      if (parsed.id === 'employer_admin') {
-        console.log('🔄 Обнаружен старый аккаунт работодателя, очищаю...');
+      try {
+        const parsed = JSON.parse(storedUser);
+        
+        // КРИТИЧНО: Проверяем на старый фейковый аккаунт
+        if (parsed.id === 'employer_admin' || 
+            (typeof parsed.id === 'string' && parsed.id.includes('employer_admin'))) {
+          console.log('🔄 Обнаружен старый фейковый аккаунт работодателя! Очищаю localStorage...');
+          localStorage.clear(); // Полная очистка
+          setUser(null);
+          alert('❗ Ваш аккаунт устарел. Пожалуйста, войдите заново:\n\nEmail: mininkonstantin@gmail.com\nПароль: secure_password_123');
+          window.location.href = '/login';
+          return;
+        }
+        
+        setUser(parsed);
+      } catch (e) {
+        console.error('❌ Ошибка парсинга localStorage:', e);
         localStorage.removeItem('user');
         setUser(null);
-      } else {
-        setUser(parsed);
       }
     }
   }, []);
