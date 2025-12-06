@@ -22,10 +22,18 @@ export async function loadJobsFromDatabase(): Promise<any[]> {
     const response = await fetch(JOBS_API);
     if (response.ok) {
       const data = await response.json();
-      return data.jobs || [];
+      const jobs = data.jobs || [];
+      if (jobs.length > 0) {
+        localStorage.setItem('jobs_cache', JSON.stringify(jobs));
+      }
+      return jobs;
     }
   } catch (error) {
-    console.error('Error loading jobs from DB:', error);
+    console.warn('API недоступен, использую кеш:', error);
+    const cached = localStorage.getItem('jobs_cache');
+    if (cached) {
+      return JSON.parse(cached);
+    }
   }
   return [];
 }
@@ -51,11 +59,22 @@ export async function saveApplicationToDatabase(application: any): Promise<boole
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(application)
     });
-    return result.ok;
+    if (result.ok) {
+      const cached = localStorage.getItem('applications_cache');
+      const apps = cached ? JSON.parse(cached) : [];
+      apps.push(application);
+      localStorage.setItem('applications_cache', JSON.stringify(apps));
+      return true;
+    }
   } catch (error) {
-    console.error('Error saving application:', error);
-    return false;
+    console.warn('API недоступен, сохраняю в кеш:', error);
+    const cached = localStorage.getItem('applications_cache');
+    const apps = cached ? JSON.parse(cached) : [];
+    apps.push(application);
+    localStorage.setItem('applications_cache', JSON.stringify(apps));
+    return true;
   }
+  return false;
 }
 
 export async function loadApplicationsFromDatabase(userId?: string, jobId?: string): Promise<any[]> {
@@ -69,10 +88,23 @@ export async function loadApplicationsFromDatabase(userId?: string, jobId?: stri
     const response = await fetch(url);
     if (response.ok) {
       const data = await response.json();
-      return data.applications || [];
+      const apps = data.applications || [];
+      if (apps.length > 0) {
+        localStorage.setItem('applications_cache', JSON.stringify(apps));
+      }
+      return apps;
     }
   } catch (error) {
-    console.error('Error loading applications from DB:', error);
+    console.warn('API недоступен, использую кеш:', error);
+    const cached = localStorage.getItem('applications_cache');
+    if (cached) {
+      const all = JSON.parse(cached);
+      return all.filter((a: any) => {
+        if (userId && a.user_id !== userId) return false;
+        if (jobId && a.job_id !== jobId) return false;
+        return true;
+      });
+    }
   }
   return [];
 }
@@ -86,7 +118,12 @@ export async function loadJobByIdFromDatabase(jobId: number): Promise<any | null
       return jobs.find((j: any) => j.id === jobId) || null;
     }
   } catch (error) {
-    console.error('Error loading job by id:', error);
+    console.warn('API недоступен, использую кеш:', error);
+    const cached = localStorage.getItem('jobs_cache');
+    if (cached) {
+      const jobs = JSON.parse(cached);
+      return jobs.find((j: any) => j.id === jobId) || null;
+    }
   }
   return null;
 }

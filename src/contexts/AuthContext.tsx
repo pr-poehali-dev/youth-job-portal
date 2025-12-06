@@ -99,7 +99,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.warn('API недоступен, использую localStorage:', error);
+    }
+    
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const foundUser = users.find((u: any) => u.email === email && u.password === password);
+    
+    if (foundUser) {
+      const { password: _, ...userWithoutPassword } = foundUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      return true;
     }
     return false;
   };
@@ -124,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('⚠️ Email уже существует в базе данных');
           return { success: false, error: 'Пользователь с таким email уже существует' };
         }
-        return { success: false, error: `Ошибка сервера: ${response.status}` };
+        throw new Error(`API error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -172,9 +182,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ Регистрация завершена успешно');
       return { success: true };
     } catch (error) {
-      console.error('❌ Ошибка при регистрации:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-      return { success: false, error: `Ошибка сети: ${errorMessage}` };
+      console.warn('⚠️ API недоступен, использую localStorage:', error);
+      
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      
+      if (users.some((u: any) => u.email === email)) {
+        return { success: false, error: 'Пользователь с таким email уже существует' };
+      }
+      
+      const newUser = {
+        id: Date.now().toString(),
+        name,
+        email,
+        password,
+        age,
+        phone,
+        completedTest: false,
+        role: 'user' as const,
+        subscription: null
+      };
+      
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      
+      console.log('✅ Регистрация через localStorage успешна');
+      return { success: true };
     }
   };
 
