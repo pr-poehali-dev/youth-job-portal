@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useActivity } from '@/contexts/ActivityContext';
-import { jobsDetails, Job, JobDetails as JobDetailsType } from '@/data/jobs';
+import { JobDetails as JobDetailsType } from '@/data/jobs';
 import { useEffect, useState } from 'react';
+import { loadJobByIdFromDatabase } from '@/utils/syncData';
 
 const JobDetails = () => {
   const { id } = useParams();
@@ -19,46 +20,34 @@ const JobDetails = () => {
     
     const jobId = Number(id);
     
-    if (jobsDetails[jobId]) {
-      setJob(jobsDetails[jobId]);
-    } else {
-      const stored = localStorage.getItem('jobs');
-      if (stored) {
-        const allJobs: Job[] = JSON.parse(stored);
-        const foundJob = allJobs.find(j => j.id === jobId);
-        
-        if (foundJob) {
-          const jobDetail: JobDetailsType = {
-            ...foundJob,
-            description: 'Присоединяйтесь к нашей команде! Мы ищем ответственного и активного сотрудника для работы в комфортных условиях.',
-            requirements: [
-              `Возраст ${foundJob.ageRange} лет`,
-              'Ответственность и пунктуальность',
-              'Готовность работать в команде',
-              'Желание учиться и развиваться'
-            ],
-            responsibilities: [
-              'Выполнение основных рабочих задач',
-              'Соблюдение правил и стандартов компании',
-              'Взаимодействие с клиентами',
-              'Поддержание порядка на рабочем месте'
-            ],
-            conditions: [
-              `График: ${foundJob.type}`,
-              'Официальное оформление',
-              'Обучение за счёт компании',
-              'Дружный коллектив',
-              'Возможность карьерного роста'
-            ],
-            contact: {
-              phone: '+7 (391) 234-56-78',
-              email: 'hr@company.ru'
-            }
-          };
-          setJob(jobDetail);
-        }
+    const loadJob = async () => {
+      const dbJob = await loadJobByIdFromDatabase(jobId);
+      if (dbJob) {
+        const jobDetail: JobDetailsType = {
+          id: dbJob.id,
+          title: dbJob.title,
+          company: dbJob.company,
+          location: dbJob.location,
+          type: dbJob.type,
+          salary: dbJob.salary,
+          ageRange: dbJob.age_range,
+          category: dbJob.category,
+          coordinates: dbJob.coordinates,
+          isPremium: dbJob.is_premium,
+          description: dbJob.description || 'Присоединяйтесь к нашей команде!',
+          requirements: dbJob.requirements || [],
+          responsibilities: dbJob.responsibilities || [],
+          conditions: dbJob.conditions || [],
+          contact: {
+            phone: dbJob.contact_phone || '+7 (391) 234-56-78',
+            email: dbJob.contact_email || 'hr@company.ru'
+          }
+        };
+        setJob(jobDetail);
       }
-    }
+    };
+    
+    loadJob();
   }, [id]);
 
   useEffect(() => {

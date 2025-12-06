@@ -76,3 +76,17 @@ export async function loadApplicationsFromDatabase(userId?: string, jobId?: stri
   }
   return [];
 }
+
+export async function loadJobByIdFromDatabase(jobId: number): Promise<any | null> {
+  try {
+    const response = await fetch(`${JOBS_API}?id=${jobId}`);
+    if (response.ok) {
+      const data = await response.json();
+      const jobs = data.jobs || [];
+      return jobs.find((j: any) => j.id === jobId) || null;
+    }
+  } catch (error) {
+    console.error('Error loading job by id:', error);
+  }
+  return null;
+}

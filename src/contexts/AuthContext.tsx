@@ -74,14 +74,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      return true;
+    try {
+      const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
+      if (response.ok) {
+        const data = await response.json();
+        const users = data.users || [];
+        const foundUser = users.find((u: any) => u.email === email && u.password_hash === password);
+        
+        if (foundUser) {
+          const userToSet = {
+            id: foundUser.id,
+            name: foundUser.name,
+            email: foundUser.email,
+            age: foundUser.age,
+            phone: foundUser.phone,
+            completedTest: foundUser.completedTest,
+            testResult: foundUser.testResult,
+            role: foundUser.role || 'user',
+            subscription: null
+          };
+          setUser(userToSet);
+          localStorage.setItem('user', JSON.stringify(userToSet));
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
     }
     return false;
   };

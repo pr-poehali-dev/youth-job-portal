@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import VacancyMap from '@/components/VacancyMap';
 import { Job } from '@/data/jobs';
+import { loadJobsFromDatabase } from '@/utils/syncData';
 
 const Vacancies = () => {
   const { user } = useAuth();
@@ -16,19 +17,12 @@ const Vacancies = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    const loadJobs = () => {
-      const stored = localStorage.getItem('jobs');
-      if (stored) {
-        try {
-          const jobs = JSON.parse(stored);
-          setAllJobs(jobs);
-        } catch (e) {
-          const { defaultJobs } = require('@/data/jobs');
-          setAllJobs(defaultJobs);
-        }
+    const loadJobs = async () => {
+      const jobsFromDB = await loadJobsFromDatabase();
+      if (jobsFromDB.length > 0) {
+        setAllJobs(jobsFromDB);
       } else {
         const { defaultJobs } = require('@/data/jobs');
-        localStorage.setItem('jobs', JSON.stringify(defaultJobs));
         setAllJobs(defaultJobs);
       }
     };
