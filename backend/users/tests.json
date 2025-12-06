@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Get all users",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "users": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Register new user",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "password": "password123",
+        "name": "Test User",
+        "age": 16
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "id": "string",
+        "email": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

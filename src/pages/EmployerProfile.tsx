@@ -21,16 +21,39 @@ const EmployerProfile = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       if (!user) return;
 
       const stored = localStorage.getItem('jobs');
       const loadedJobs: Job[] = stored ? JSON.parse(stored) : defaultJobs;
       setAllJobs(loadedJobs);
 
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const usersList = users.filter((u: any) => u.role !== 'employer');
-      setAllUsers(usersList);
+      try {
+        const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009');
+        if (response.ok) {
+          const data = await response.json();
+          const usersList = data.users || [];
+          setAllUsers(usersList);
+          
+          const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+          const mergedUsers = [...localUsers];
+          usersList.forEach((dbUser: any) => {
+            if (!mergedUsers.some(u => u.email === dbUser.email)) {
+              mergedUsers.push(dbUser);
+            }
+          });
+          localStorage.setItem('users', JSON.stringify(mergedUsers));
+        } else {
+          const users = JSON.parse(localStorage.getItem('users') || '[]');
+          const usersList = users.filter((u: any) => u.role !== 'employer');
+          setAllUsers(usersList);
+        }
+      } catch (error) {
+        console.error('Error loading users from DB:', error);
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const usersList = users.filter((u: any) => u.role !== 'employer');
+        setAllUsers(usersList);
+      }
 
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
         ? loadedJobs
@@ -38,7 +61,8 @@ const EmployerProfile = () => {
       const employerJobIds = employerJobs.map(job => job.id);
 
       const allResponses: ResponseData[] = [];
-      users.forEach((u: any) => {
+      const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      localUsers.forEach((u: any) => {
         if (u.role !== 'employer') {
           const userActivities = JSON.parse(localStorage.getItem(`activities_${u.id}`) || '[]');
           const userResponses = userActivities.filter((a: any) => 
@@ -160,10 +184,12 @@ const EmployerProfile = () => {
                 <Icon name="Briefcase" size={16} className="mr-2" />
                 Вакансии
               </TabsTrigger>
-              <TabsTrigger value="candidates">
-                <Icon name="Users" size={16} className="mr-2" />
-                База кандидатов
-              </TabsTrigger>
+              {user?.email === 'mininkonstantin@gmail.com' && (
+                <TabsTrigger value="candidates">
+                  <Icon name="Users" size={16} className="mr-2" />
+                  База кандидатов
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="responses" className="mt-6">
@@ -185,9 +211,11 @@ const EmployerProfile = () => {
               />
             </TabsContent>
 
-            <TabsContent value="candidates" className="mt-6">
-              <CandidatesTab allUsers={allUsers} userSubscription={user.subscription} />
-            </TabsContent>
+            {user?.email === 'mininkonstantin@gmail.com' && (
+              <TabsContent value="candidates" className="mt-6">
+                <CandidatesTab allUsers={allUsers} userSubscription={user.subscription} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
