@@ -27,6 +27,8 @@ const Vacancies = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
+    let autoRestoreTriggered = false;
+    
     const loadJobs = async () => {
       const dbJobs = await loadJobsFromDatabase();
       const stored = localStorage.getItem('jobs');
@@ -35,6 +37,22 @@ const Vacancies = () => {
         console.log('Loaded jobs from DB:', dbJobs.length);
         setAllJobs(dbJobs);
         localStorage.setItem('jobs', JSON.stringify(dbJobs));
+        
+        if (dbJobs.length === 1 && !autoRestoreTriggered) {
+          const restored = localStorage.getItem('default_jobs_restored');
+          if (restored !== 'true') {
+            console.log('🔄 В базе только 1 вакансия, запускаю автоматическое восстановление...');
+            autoRestoreTriggered = true;
+            localStorage.setItem('default_jobs_restored', 'restoring');
+            runRestore().then(() => {
+              console.log('✅ Автоматическое восстановление завершено');
+            }).catch((err) => {
+              console.error('❌ Ошибка автовосстановления:', err);
+              localStorage.removeItem('default_jobs_restored');
+              autoRestoreTriggered = false;
+            });
+          }
+        }
       } else if (stored) {
         try {
           const jobs = JSON.parse(stored);

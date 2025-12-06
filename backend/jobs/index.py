@@ -26,10 +26,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     db_url = os.environ.get('DATABASE_URL')
-    conn = psycopg2.connect(db_url)
-    cur = conn.cursor()
     
     try:
+        conn = psycopg2.connect(db_url)
+        cur = conn.cursor()
         if method == 'GET':
             cur.execute("""
                 SELECT id, title, company, location, type, salary, 
@@ -229,6 +229,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {**cors_headers, 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }
+    
     finally:
-        cur.close()
-        conn.close()
+        if 'cur' in locals():
+            cur.close()
+        if 'conn' in locals():
+            conn.close()

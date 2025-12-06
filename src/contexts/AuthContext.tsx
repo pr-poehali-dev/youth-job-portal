@@ -83,6 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<boolean> => {
     try {
+      console.log('Регистрация пользователя:', { name, email, age, phone });
+      
       const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,12 +93,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Registration failed:', errorData);
+        console.error('Регистрация не удалась:', errorData);
+        
+        if (errorData.error === 'Email already exists') {
+          console.log('❌ Пользователь с таким email уже существует в базе данных');
+        }
         return false;
       }
 
       const data = await response.json();
-      console.log('User registered successfully:', data);
+      console.log('✅ Пользователь успешно зарегистрирован в БД:', data);
       
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const newUser = {
@@ -120,7 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return true;
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('❌ Ошибка при регистрации:', error);
       return false;
     }
   };
