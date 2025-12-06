@@ -61,7 +61,7 @@ const Chat = () => {
 
   useEffect(() => {
     const loadMessages = async () => {
-      if (!user || !chatPartnerId) return;
+      if (!user || !chatPartnerId || !id) return;
       
       try {
         const params = new URLSearchParams();
@@ -70,6 +70,7 @@ const Chat = () => {
         
         params.append('sender_id', userId1);
         params.append('receiver_id', userId2);
+        params.append('job_id', id);
         
         const response = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (response.ok) {
@@ -95,7 +96,7 @@ const Chat = () => {
     loadMessages();
     const interval = setInterval(loadMessages, 2000);
     return () => clearInterval(interval);
-  }, [user, chatPartnerId]);
+  }, [user, chatPartnerId, id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,6 +128,7 @@ const Chat = () => {
         
         params.append('sender_id', userId1);
         params.append('receiver_id', userId2);
+        if (id) params.append('job_id', id);
         
         const refreshResponse = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (refreshResponse.ok) {

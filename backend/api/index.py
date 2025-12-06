@@ -563,20 +563,34 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 sender_id = query_params.get('sender_id', '')
                 receiver_id = query_params.get('receiver_id', '')
                 user_id = query_params.get('user_id', '')
+                job_id = query_params.get('job_id', '')
                 
                 if sender_id and receiver_id:
                     sender_id_safe = str(sender_id).replace("'", "''")
                     receiver_id_safe = str(receiver_id).replace("'", "''")
                     
-                    print(f"Fetching conversation between {sender_id} and {receiver_id}")
-                    
-                    cur.execute(f"""
-                        SELECT id, sender_id, receiver_id, job_id, message_text, is_read, created_at
-                        FROM t_p86122027_youth_job_portal.messages
-                        WHERE (sender_id = '{sender_id_safe}' AND receiver_id = '{receiver_id_safe}')
-                           OR (sender_id = '{receiver_id_safe}' AND receiver_id = '{sender_id_safe}')
-                        ORDER BY created_at ASC
-                    """)
+                    if job_id:
+                        job_id_safe = str(job_id).replace("'", "''")
+                        print(f"Fetching conversation between {sender_id} and {receiver_id} for job {job_id}")
+                        
+                        cur.execute(f"""
+                            SELECT id, sender_id, receiver_id, job_id, message_text, is_read, created_at
+                            FROM t_p86122027_youth_job_portal.messages
+                            WHERE ((sender_id = '{sender_id_safe}' AND receiver_id = '{receiver_id_safe}')
+                               OR (sender_id = '{receiver_id_safe}' AND receiver_id = '{sender_id_safe}'))
+                               AND job_id = '{job_id_safe}'
+                            ORDER BY created_at ASC
+                        """)
+                    else:
+                        print(f"Fetching conversation between {sender_id} and {receiver_id}")
+                        
+                        cur.execute(f"""
+                            SELECT id, sender_id, receiver_id, job_id, message_text, is_read, created_at
+                            FROM t_p86122027_youth_job_portal.messages
+                            WHERE (sender_id = '{sender_id_safe}' AND receiver_id = '{receiver_id_safe}')
+                               OR (sender_id = '{receiver_id_safe}' AND receiver_id = '{sender_id_safe}')
+                            ORDER BY created_at ASC
+                        """)
                     
                     rows = cur.fetchall()
                     messages = []
