@@ -19,9 +19,3 @@ export async function runRestore() {
   
   return result;
 }
-
-// Сделать доступным в глобальной области для вызова из консоли
-if (typeof window !== 'undefined') {
-  (window as any).runRestore = runRestore;
-  console.log('💡 Для восстановления вакансий вызовите: runRestore()');
-}

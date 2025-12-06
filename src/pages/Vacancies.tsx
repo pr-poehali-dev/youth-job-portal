@@ -10,7 +10,15 @@ import VacancyMap from '@/components/VacancyMap';
 import { Job } from '@/data/jobs';
 import { loadJobsFromDatabase } from '@/utils/syncData';
 import '@/utils/migrateToDb';
-import '@/utils/runRestore';
+import { runRestore } from '@/utils/runRestore';
+
+// Сделать доступным глобально для вызова из консоли
+if (typeof window !== 'undefined') {
+  (window as any).runRestore = () => {
+    runRestore();
+  };
+  console.log('💡 Для восстановления 30 вакансий выполните в консоли: runRestore()');
+}
 
 const Vacancies = () => {
   const { user } = useAuth();

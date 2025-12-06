@@ -9,15 +9,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     method: str = event.get('httpMethod', 'GET')
     
+    # Общие CORS заголовки
+    cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
+        'Access-Control-Max-Age': '86400'
+    }
+    
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Max-Age': '86400'
-            },
+            'headers': cors_headers,
             'body': '',
             'isBase64Encoded': False
         }
@@ -72,10 +75,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'jobs': jobs}),
                 'isBase64Encoded': False
             }
@@ -123,10 +123,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 201,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'id': job_id}),
                 'isBase64Encoded': False
             }
@@ -174,7 +171,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 conn.rollback()
                 return {
                     'statusCode': 404,
-                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'headers': cors_headers,
                     'body': json.dumps({'error': 'Job not found'}),
                     'isBase64Encoded': False
                 }
@@ -183,10 +180,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'id': result[0]}),
                 'isBase64Encoded': False
             }
@@ -198,7 +192,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not job_id:
                 return {
                     'statusCode': 400,
-                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'headers': cors_headers,
                     'body': json.dumps({'error': 'Job ID required'}),
                     'isBase64Encoded': False
                 }
@@ -214,7 +208,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 conn.rollback()
                 return {
                     'statusCode': 404,
-                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'headers': cors_headers,
                     'body': json.dumps({'error': 'Job not found'}),
                     'isBase64Encoded': False
                 }
@@ -223,17 +217,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             return {
                 'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'id': result[0], 'message': 'Job deleted'}),
                 'isBase64Encoded': False
             }
         
         return {
             'statusCode': 405,
-            'headers': {'Access-Control-Allow-Origin': '*'},
+            'headers': cors_headers,
             'body': json.dumps({'error': 'Method not allowed'}),
             'isBase64Encoded': False
         }
