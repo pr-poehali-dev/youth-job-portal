@@ -88,28 +88,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    let userId = Date.now().toString();
-
-    try {
-      const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, age, phone: phone || '' })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        userId = data.id;
-        console.log('User registered in DB:', data);
-      } else {
-        console.warn('DB registration failed, using local storage only');
-      }
-    } catch (error) {
-      console.error('Registration error, using local storage:', error);
-    }
-    
     const newUser = {
-      id: userId,
+      id: Date.now().toString(),
       name,
       email,
       password,
