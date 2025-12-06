@@ -5,7 +5,7 @@ from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    API для управления вакансиями: создание, получение, обновление
+    API для управления вакансиями: создание, получение, обновление, удаление
     '''
     method: str = event.get('httpMethod', 'GET')
     
@@ -92,6 +92,86 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({'id': job_id})
+            }
+        
+        if method == 'PUT':
+            body_data = json.loads(event.get('body', '{}'))
+            
+            cur.execute("""
+                UPDATE t_p86122027_youth_job_portal.jobs 
+                SET title = %s, company = %s, location = %s, type = %s, 
+                    salary = %s, description = %s, requirements = %s, 
+                    employer_id = %s, employer_email = %s, updated_at = NOW()
+                WHERE id = %s
+                RETURNING id
+            """, (
+                body_data.get('title'),
+                body_data.get('company'),
+                body_data.get('location'),
+                body_data.get('type'),
+                body_data.get('salary'),
+                body_data.get('description'),
+                body_data.get('requirements', []),
+                body_data.get('employerId'),
+                body_data.get('employerEmail'),
+                body_data.get('id')
+            ))
+            
+            result = cur.fetchone()
+            if not result:
+                conn.rollback()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Job not found'})
+                }
+            
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'id': result[0]})
+            }
+        
+        if method == 'DELETE':
+            body_data = json.loads(event.get('body', '{}'))
+            job_id = body_data.get('id')
+            
+            if not job_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Job ID required'})
+                }
+            
+            cur.execute("""
+                DELETE FROM t_p86122027_youth_job_portal.jobs 
+                WHERE id = %s
+                RETURNING id
+            """, (job_id,))
+            
+            result = cur.fetchone()
+            if not result:
+                conn.rollback()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Job not found'})
+                }
+            
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'id': result[0], 'message': 'Job deleted'})
             }
         
         return {

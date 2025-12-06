@@ -44,6 +44,34 @@ export async function saveJobToDatabase(job: any): Promise<boolean> {
   }
 }
 
+export async function updateJobInDatabase(job: any): Promise<boolean> {
+  try {
+    const response = await fetch(JOBS_API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(job)
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error updating job:', error);
+    return false;
+  }
+}
+
+export async function deleteJobFromDatabase(jobId: string | number): Promise<boolean> {
+  try {
+    const response = await fetch(JOBS_API, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: jobId })
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    return false;
+  }
+}
+
 export async function saveResponseToDatabase(response: any): Promise<boolean> {
   try {
     const result = await fetch(RESPONSES_API, {

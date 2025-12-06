@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Job } from '@/data/jobs';
 import { ResponseData } from './ResponsesTab';
+import { deleteJobFromDatabase } from '@/utils/syncData';
+import { useState } from 'react';
 
 interface VacanciesTabProps {
   allJobs: Job[];
@@ -13,6 +15,30 @@ interface VacanciesTabProps {
 
 const VacanciesTab = ({ allJobs, responsesByJob }: VacanciesTabProps) => {
   const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
+
+  const handleDelete = async (jobId: string | number) => {
+    if (!confirm('Вы уверены, что хотите удалить эту вакансию?')) {
+      return;
+    }
+
+    setDeletingId(jobId);
+    const success = await deleteJobFromDatabase(jobId);
+    
+    if (success) {
+      const stored = localStorage.getItem('jobs');
+      if (stored) {
+        const jobs = JSON.parse(stored);
+        const filtered = jobs.filter((j: any) => j.id.toString() !== jobId.toString());
+        localStorage.setItem('jobs', JSON.stringify(filtered));
+      }
+      window.location.reload();
+    } else {
+      alert('Не удалось удалить вакансию');
+    }
+    
+    setDeletingId(null);
+  };
 
   return (
     <Card>
@@ -47,16 +73,38 @@ const VacanciesTab = ({ allJobs, responsesByJob }: VacanciesTabProps) => {
             return (
               <div key={job.id} className="p-4 rounded-lg border border-border hover:bg-secondary/50 transition">
                 <div className="flex items-start justify-between mb-3">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-1">{job.title}</h3>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Icon name="Building2" size={14} />
                       <span>{job.company}</span>
                     </div>
                   </div>
-                  <Badge variant={jobResponses.length > 0 ? "default" : "secondary"}>
-                    {jobResponses.length} {jobResponses.length === 1 ? 'отклик' : 'откликов'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={jobResponses.length > 0 ? "default" : "secondary"}>
+                      {jobResponses.length} {jobResponses.length === 1 ? 'отклик' : 'откликов'}
+                    </Badge>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => navigate(`/edit-job/${job.id}`)}
+                    >
+                      <Icon name="Edit" size={14} className="mr-1" />
+                      Изменить
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleDelete(job.id)}
+                      disabled={deletingId === job.id}
+                    >
+                      {deletingId === job.id ? (
+                        <Icon name="Loader2" size={14} className="animate-spin" />
+                      ) : (
+                        <Icon name="Trash2" size={14} />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-sm mb-3">
                   <div className="flex items-center gap-1">
