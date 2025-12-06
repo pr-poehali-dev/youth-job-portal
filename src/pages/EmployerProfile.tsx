@@ -160,10 +160,12 @@ const EmployerProfile = () => {
                 <Icon name="Briefcase" size={16} className="mr-2" />
                 Вакансии
               </TabsTrigger>
-              <TabsTrigger value="candidates">
-                <Icon name="Users" size={16} className="mr-2" />
-                База кандидатов
-              </TabsTrigger>
+              {user?.email === 'mininkonstantin@gmail.com' && (
+                <TabsTrigger value="candidates">
+                  <Icon name="Users" size={16} className="mr-2" />
+                  База кандидатов
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="responses" className="mt-6">
@@ -185,9 +187,11 @@ const EmployerProfile = () => {
               />
             </TabsContent>
 
-            <TabsContent value="candidates" className="mt-6">
-              <CandidatesTab allUsers={allUsers} userSubscription={user.subscription} />
-            </TabsContent>
+            {user?.email === 'mininkonstantin@gmail.com' && (
+              <TabsContent value="candidates" className="mt-6">
+                <CandidatesTab allUsers={allUsers} userSubscription={user.subscription} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
