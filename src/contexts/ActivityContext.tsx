@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { saveResponseToDatabase } from '@/utils/syncData';
+import { saveApplicationToDatabase, loadApplicationsFromDatabase } from '@/utils/syncData';
 
 interface Activity {
   id: string;
@@ -20,6 +20,7 @@ interface ActivityContextType {
   isJobSaved: (jobId: number) => boolean;
   hasResponded: (jobId: number) => boolean;
   getStats: () => { responses: number; saved: number; views: number };
+  refreshApplications: () => Promise<void>;
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
@@ -31,14 +32,22 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     if (user) {
-      const storedActivities = localStorage.getItem(`activities_${user.id}`);
-      const storedSaved = localStorage.getItem(`saved_${user.id}`);
+      loadApplicationsFromDatabase(user.id).then(applications => {
+        const responseActivities = applications
+          .filter(app => app.status === 'pending' || app.status === 'accepted' || app.status === 'rejected')
+          .map(app => ({
+            id: app.id,
+            action: 'response' as const,
+            jobId: parseInt(app.job_id),
+            jobTitle: '',
+            company: '',
+            timestamp: new Date(app.created_at).getTime()
+          }));
+        
+        setActivities(responseActivities);
+      });
       
-      if (storedActivities) {
-        setActivities(JSON.parse(storedActivities));
-      } else {
-        setActivities([]);
-      }
+      const storedSaved = localStorage.getItem(`saved_${user.id}`);
       if (storedSaved) {
         setSavedJobs(JSON.parse(storedSaved));
       } else {
@@ -58,31 +67,33 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const addResponse = async (jobId: number, jobTitle: string, company: string) => {
-    const newActivity: Activity = {
-      id: Date.now().toString(),
-      action: 'response',
-      jobId,
-      jobTitle,
-      company,
-      timestamp: Date.now()
-    };
+    if (!user) return;
     
-    if (user) {
-      await saveResponseToDatabase({
-        userId: user.id,
-        jobId: jobId.toString(),
-        userName: user.name,
-        userEmail: user.email,
-        userAge: user.age,
+    const success = await saveApplicationToDatabase({
+      job_id: jobId.toString(),
+      user_id: user.id,
+      user_name: user.name,
+      user_email: user.email,
+      user_phone: user.phone || '',
+      user_age: user.age,
+      cover_letter: '',
+      status: 'pending'
+    });
+    
+    if (success) {
+      const newActivity: Activity = {
+        id: Date.now().toString(),
+        action: 'response',
+        jobId,
         jobTitle,
-        testScore: null,
-        testDate: null
-      });
+        company,
+        timestamp: Date.now()
+      };
+      
+      const newActivities = [newActivity, ...activities];
+      setActivities(newActivities);
+      saveToStorage(newActivities, savedJobs);
     }
-    
-    const newActivities = [newActivity, ...activities];
-    setActivities(newActivities);
-    saveToStorage(newActivities, savedJobs);
   };
 
   const toggleSaveJob = (jobId: number, jobTitle: string, company: string) => {
@@ -133,6 +144,22 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const hasResponded = (jobId: number) => {
     return activities.some(a => a.action === 'response' && a.jobId === jobId);
   };
+  
+  const refreshApplications = async () => {
+    if (!user) return;
+    const applications = await loadApplicationsFromDatabase(user.id);
+    const responseActivities = applications
+      .filter(app => app.status === 'pending' || app.status === 'accepted' || app.status === 'rejected')
+      .map(app => ({
+        id: app.id,
+        action: 'response' as const,
+        jobId: parseInt(app.job_id),
+        jobTitle: '',
+        company: '',
+        timestamp: new Date(app.created_at).getTime()
+      }));
+    setActivities(responseActivities);
+  };
 
   const getStats = () => ({
     responses: activities.filter(a => a.action === 'response').length,
@@ -149,7 +176,8 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       addView,
       isJobSaved,
       hasResponded,
-      getStats
+      getStats,
+      refreshApplications
     }}>
       {children}
     </ActivityContext.Provider>

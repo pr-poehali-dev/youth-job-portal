@@ -1,7 +1,7 @@
 // Утилиты для синхронизации данных с БД
 
 const JOBS_API = 'https://functions.poehali.dev/45d3fa5f-388c-486d-9dff-ff2e5e7d10b9';
-const RESPONSES_API = 'https://functions.poehali.dev/6876307b-09ba-41ba-a4c4-bbf1b5e97e4a';
+const APPLICATIONS_API = 'https://functions.poehali.dev/8ff782a6-0660-4548-a99e-bdbbbf8661b5';
 
 export async function syncJobsToDatabase(jobs: any[]) {
   for (const job of jobs) {
@@ -44,29 +44,35 @@ export async function saveJobToDatabase(job: any): Promise<boolean> {
   }
 }
 
-export async function saveResponseToDatabase(response: any): Promise<boolean> {
+export async function saveApplicationToDatabase(application: any): Promise<boolean> {
   try {
-    const result = await fetch(RESPONSES_API, {
+    const result = await fetch(APPLICATIONS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(response)
+      body: JSON.stringify(application)
     });
     return result.ok;
   } catch (error) {
-    console.error('Error saving response:', error);
+    console.error('Error saving application:', error);
     return false;
   }
 }
 
-export async function loadResponsesFromDatabase(): Promise<any[]> {
+export async function loadApplicationsFromDatabase(userId?: string, jobId?: string): Promise<any[]> {
   try {
-    const response = await fetch(RESPONSES_API);
+    let url = APPLICATIONS_API;
+    const params = new URLSearchParams();
+    if (userId) params.append('user_id', userId);
+    if (jobId) params.append('job_id', jobId);
+    if (params.toString()) url += '?' + params.toString();
+    
+    const response = await fetch(url);
     if (response.ok) {
       const data = await response.json();
-      return data.responses || [];
+      return data.applications || [];
     }
   } catch (error) {
-    console.error('Error loading responses from DB:', error);
+    console.error('Error loading applications from DB:', error);
   }
   return [];
 }

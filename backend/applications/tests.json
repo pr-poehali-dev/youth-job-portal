@@ -1,0 +1,33 @@
+[
+  {
+    "name": "GET all applications",
+    "event": {
+      "httpMethod": "GET"
+    },
+    "expected": {
+      "statusCode": 200
+    }
+  },
+  {
+    "name": "GET applications filtered by job_id",
+    "event": {
+      "httpMethod": "GET",
+      "queryStringParameters": {
+        "job_id": "123e4567-e89b-12d3-a456-426614174000"
+      }
+    },
+    "expected": {
+      "statusCode": 200
+    }
+  },
+  {
+    "name": "POST create new application",
+    "event": {
+      "httpMethod": "POST",
+      "body": "{\"job_id\": \"123e4567-e89b-12d3-a456-426614174000\", \"user_id\": \"456e7890-e89b-12d3-a456-426614174000\", \"user_name\": \"Test User\", \"user_email\": \"test@example.com\", \"user_phone\": \"+1234567890\", \"user_age\": 25, \"cover_letter\": \"I am interested in this position\"}"
+    },
+    "expected": {
+      "statusCode": 201
+    }
+  }
+]

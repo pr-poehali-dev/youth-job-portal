@@ -17,6 +17,8 @@ interface Message {
   timestamp: number;
 }
 
+const MESSAGES_API = 'https://functions.poehali.dev/fe0b272c-332c-4195-a2f5-7d1316c93d7c';
+
 const jobsInfo = Object.fromEntries(
   allJobs.map(job => [job.id, { id: job.id, title: job.title, company: job.company }])
 );
@@ -38,7 +40,6 @@ const Chat = () => {
   const otherUserId = urlParams.get('userId');
   
   const chatPartnerId = user?.role === 'employer' ? otherUserId : user?.id;
-  const chatKey = `chat_${id}_${chatPartnerId}`;
 
   useEffect(() => {
     if (!user) {
@@ -47,38 +48,98 @@ const Chat = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const loadMessages = () => {
-      const savedMessages = localStorage.getItem(chatKey);
-      if (savedMessages) {
-        setMessages(JSON.parse(savedMessages));
+    const loadMessages = async () => {
+      if (!user || !chatPartnerId) return;
+      
+      try {
+        const params = new URLSearchParams();
+        if (user.role === 'employer') {
+          params.append('sender_id', chatPartnerId);
+          params.append('receiver_id', user.id);
+        } else {
+          params.append('sender_id', user.id);
+          params.append('receiver_id', 'employer_admin');
+        }
+        
+        const response = await fetch(`${MESSAGES_API}?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          const dbMessages = data.messages || [];
+          
+          const formattedMessages = dbMessages.map((msg: any) => ({
+            id: msg.id,
+            text: msg.message_text,
+            senderId: msg.sender_id,
+            senderName: msg.sender_id === user.id ? user.name : 'Работодатель',
+            senderRole: msg.sender_id === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
+            timestamp: new Date(msg.created_at).getTime()
+          }));
+          
+          setMessages(formattedMessages);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
       }
     };
 
     loadMessages();
-    const interval = setInterval(loadMessages, 1000);
+    const interval = setInterval(loadMessages, 2000);
     return () => clearInterval(interval);
-  }, [chatKey]);
+  }, [user, chatPartnerId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!inputValue.trim() || !user) return;
 
-    const newMessage: Message = {
-      id: `${Date.now()}_${user.id}`,
-      text: inputValue,
-      senderId: user.id,
-      senderName: user.name,
-      senderRole: user.role === 'employer' ? 'employer' : 'user',
-      timestamp: Date.now()
-    };
+    try {
+      const receiverId = user.role === 'employer' ? chatPartnerId : 'employer_admin';
+      
+      const response = await fetch(MESSAGES_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_id: user.id,
+          receiver_id: receiverId,
+          job_id: id || null,
+          message_text: inputValue
+        })
+      });
 
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
-    setInputValue('');
+      if (response.ok) {
+        setInputValue('');
+        
+        const params = new URLSearchParams();
+        if (user.role === 'employer') {
+          params.append('sender_id', chatPartnerId!);
+          params.append('receiver_id', user.id);
+        } else {
+          params.append('sender_id', user.id);
+          params.append('receiver_id', 'employer_admin');
+        }
+        
+        const refreshResponse = await fetch(`${MESSAGES_API}?${params.toString()}`);
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json();
+          const dbMessages = data.messages || [];
+          
+          const formattedMessages = dbMessages.map((msg: any) => ({
+            id: msg.id,
+            text: msg.message_text,
+            senderId: msg.sender_id,
+            senderName: msg.sender_id === user.id ? user.name : 'Работодатель',
+            senderRole: msg.sender_id === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
+            timestamp: new Date(msg.created_at).getTime()
+          }));
+          
+          setMessages(formattedMessages);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const scheduleInterview = () => {
@@ -105,18 +166,7 @@ const Chat = () => {
     allInterviews.push(interviewData);
     localStorage.setItem('all_interviews', JSON.stringify(allInterviews));
 
-    const confirmMessage: Message = {
-      id: `${Date.now()}_${user.id}`,
-      text: `📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`,
-      senderId: user.id,
-      senderName: user.name,
-      senderRole: 'employer',
-      timestamp: Date.now()
-    };
-
-    const updatedMessages = [...messages, confirmMessage];
-    setMessages(updatedMessages);
-    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+    sendMessageToChat(`📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`);
 
     setIsDialogOpen(false);
     setInterviewDate('');
@@ -126,22 +176,32 @@ const Chat = () => {
   const requestInterview = () => {
     if (!interviewDate || !interviewTime || !user) return;
 
-    const requestMessage: Message = {
-      id: `${Date.now()}_${user.id}`,
-      text: `🙋 Прошу назначить собеседование на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`,
-      senderId: user.id,
-      senderName: user.name,
-      senderRole: 'user',
-      timestamp: Date.now()
-    };
-
-    const updatedMessages = [...messages, requestMessage];
-    setMessages(updatedMessages);
-    localStorage.setItem(chatKey, JSON.stringify(updatedMessages));
+    sendMessageToChat(`🙋 Прошу назначить собеседование на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`);
 
     setIsDialogOpen(false);
     setInterviewDate('');
     setInterviewTime('');
+  };
+
+  const sendMessageToChat = async (text: string) => {
+    if (!user) return;
+
+    try {
+      const receiverId = user.role === 'employer' ? chatPartnerId : 'employer_admin';
+      
+      await fetch(MESSAGES_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_id: user.id,
+          receiver_id: receiverId,
+          job_id: id || null,
+          message_text: text
+        })
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   if (!user) return null;
@@ -233,70 +293,48 @@ const Chat = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Link to="/profile">
-              <Button variant="ghost" size="icon">
-                <Icon name="User" size={20} />
-              </Button>
-            </Link>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto bg-secondary/10">
-        <div className="container max-w-4xl mx-auto px-4 py-6 space-y-4">
+      <main className="flex-1 container mx-auto px-4 py-6 flex flex-col max-w-4xl">
+        <div className="flex-1 space-y-4 overflow-y-auto mb-4">
           {messages.length === 0 ? (
-            <div className="text-center py-12">
-              <Icon name="MessageSquare" size={48} className="mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-2">Чат пуст</p>
-              <p className="text-sm text-muted-foreground">
-                Отправьте первое сообщение чтобы начать диалог
-              </p>
+            <div className="text-center text-muted-foreground py-12">
+              <Icon name="MessageCircle" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Нет сообщений. Начните общение!</p>
             </div>
           ) : (
-            messages.map((message) => {
-              const isMyMessage = message.senderId === user.id;
-              return (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
+              >
                 <div
-                  key={message.id}
-                  className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                  className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                    message.senderId === user.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  }`}
                 >
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
-                      isMyMessage
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card border border-border'
-                    }`}
-                  >
-                    {!isMyMessage && (
-                      <p className="text-xs font-medium mb-1 opacity-70">
-                        {message.senderName}
-                      </p>
-                    )}
-                    <p className="text-sm whitespace-pre-wrap">{message.text}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        isMyMessage
-                          ? 'text-primary-foreground/70'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      {new Date(message.timestamp).toLocaleTimeString('ru-RU', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
+                  <p className="text-xs font-medium mb-1 opacity-70">
+                    {message.senderName}
+                  </p>
+                  <p className="break-words">{message.text}</p>
+                  <p className="text-xs opacity-70 mt-1">
+                    {new Date(message.timestamp).toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
-              );
-            })
+              </div>
+            ))
           )}
-          
           <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      <div className="border-t border-border bg-card">
-        <div className="container max-w-4xl mx-auto px-4 py-4">
+        <div className="border-t border-border pt-4">
           <div className="flex gap-2">
             <Input
               value={inputValue}
@@ -310,7 +348,7 @@ const Chat = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
