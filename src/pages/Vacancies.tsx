@@ -8,6 +8,8 @@ import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 import VacancyMap from '@/components/VacancyMap';
 import { Job } from '@/data/jobs';
+import { loadJobsFromDatabase } from '@/utils/syncData';
+import '@/utils/migrateToDb';
 
 const Vacancies = () => {
   const { user } = useAuth();
@@ -16,9 +18,15 @@ const Vacancies = () => {
   const [allJobs, setAllJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    const loadJobs = () => {
+    const loadJobs = async () => {
+      const dbJobs = await loadJobsFromDatabase();
       const stored = localStorage.getItem('jobs');
-      if (stored) {
+      
+      if (dbJobs.length > 0) {
+        console.log('Loaded jobs from DB:', dbJobs.length);
+        setAllJobs(dbJobs);
+        localStorage.setItem('jobs', JSON.stringify(dbJobs));
+      } else if (stored) {
         try {
           const jobs = JSON.parse(stored);
           setAllJobs(jobs);
@@ -34,7 +42,7 @@ const Vacancies = () => {
     };
 
     loadJobs();
-    const interval = setInterval(loadJobs, 2000);
+    const interval = setInterval(loadJobs, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -44,7 +52,9 @@ const Vacancies = () => {
                            job.company.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = !selectedType || job.type === selectedType;
       
-      if (job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
+      const isAdmin = user?.email === 'mininkonstantin@gmail.com';
+      
+      if (!isAdmin && job.isPremium && (!user || (user.subscription !== 'premium' && user.subscription !== 'premium_plus'))) {
         return false;
       }
       
