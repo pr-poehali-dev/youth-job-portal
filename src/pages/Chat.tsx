@@ -73,7 +73,7 @@ const Chat = () => {
           params.append('receiver_id', EMPLOYER_ID);
         }
         
-        const response = await fetch(`${MESSAGES_API}?${params.toString()}`);
+        const response = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (response.ok) {
           const data = await response.json();
           const dbMessages = data.messages || [];
@@ -132,7 +132,7 @@ const Chat = () => {
           params.append('receiver_id', EMPLOYER_ID);
         }
         
-        const refreshResponse = await fetch(`${MESSAGES_API}?${params.toString()}`);
+        const refreshResponse = await fetch(`${MESSAGES_API}&${params.toString()}`);
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
           const dbMessages = data.messages || [];
