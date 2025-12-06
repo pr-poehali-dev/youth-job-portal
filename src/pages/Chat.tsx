@@ -156,18 +156,36 @@ const Chat = () => {
   };
 
   const scheduleInterview = async () => {
-    if (!interviewDate || !interviewTime || !user || !chatPartnerId) return;
+    if (!interviewDate || !interviewTime || !user || !chatPartnerId) {
+      console.log('❌ Недостаточно данных для назначения собеседования');
+      return;
+    }
 
     try {
+      console.log('📅 Запрос пользователей для назначения собеседования...');
       const usersResponse = await fetch(`${API_BASE}?resource=users`);
-      if (!usersResponse.ok) return;
+      if (!usersResponse.ok) {
+        console.error('❌ Не удалось загрузить пользователей:', usersResponse.status);
+        return;
+      }
       
       const usersData = await usersResponse.json();
       const responseUser = usersData.users.find((u: any) => u.id === chatPartnerId);
 
-      if (!responseUser) return;
+      if (!responseUser) {
+        console.error('❌ Пользователь не найден:', chatPartnerId);
+        return;
+      }
 
       const interviewDateTime = `${interviewDate}T${interviewTime}:00`;
+      
+      console.log('📤 Создание собеседования:', {
+        userId: responseUser.id,
+        userName: responseUser.name,
+        jobId: Number(id),
+        jobTitle: jobInfo?.title,
+        date: interviewDateTime
+      });
       
       const response = await fetch(`${API_BASE}?resource=interviews`, {
         method: 'POST',
@@ -186,13 +204,21 @@ const Chat = () => {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Собеседование создано:', data);
         sendMessageToChat(`📅 Собеседование назначено на ${new Date(interviewDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} в ${interviewTime}`);
+        alert('✅ Собеседование успешно назначено!');
         setIsDialogOpen(false);
         setInterviewDate('');
         setInterviewTime('');
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Ошибка создания собеседования:', response.status, errorData);
+        alert(`❌ Не удалось назначить собеседование: ${errorData.error || 'Ошибка сервера'}`);
       }
     } catch (error) {
-      console.error('Error scheduling interview:', error);
+      console.error('❌ Критическая ошибка при назначении собеседования:', error);
+      alert('❌ Не удалось назначить собеседование. Проверьте подключение к интернету.');
     }
   };
 

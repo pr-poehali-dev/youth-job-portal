@@ -79,21 +79,26 @@ const EmployerProfile = () => {
       setResponses(relevantResponses);
 
       try {
+        console.log('📋 Загрузка собеседований для вакансий:', employerJobIds);
         const interviewsResponse = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=interviews');
         if (interviewsResponse.ok) {
           const data = await interviewsResponse.json();
           const allDbInterviews = data.interviews || [];
+          console.log('📊 Всего собеседований в БД:', allDbInterviews.length);
+          console.log('🔍 Пример первого собеседования:', allDbInterviews[0]);
+          
           const employerInterviews = allDbInterviews.filter((interview: any) => 
             employerJobIds.includes(String(interview.jobId))
           );
           employerInterviews.sort((a: any, b: any) => b.timestamp - a.timestamp);
           setInterviews(employerInterviews);
-          console.log('✅ Загружено собеседований из БД:', employerInterviews.length);
+          console.log('✅ Загружено собеседований работодателя:', employerInterviews.length);
         } else {
+          console.error('❌ Ошибка ответа при загрузке собеседований:', interviewsResponse.status);
           setInterviews([]);
         }
       } catch (error) {
-        console.error('❌ Ошибка загрузки собеседований:', error);
+        console.error('❌ Критическая ошибка загрузки собеседований:', error);
         setInterviews([]);
       }
     };
