@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
-import { allJobs } from '@/data/jobs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { loadJobByIdFromDatabase } from '@/utils/syncData';
 
 interface Message {
   id: string;
@@ -21,10 +21,6 @@ const API_BASE = 'https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32
 const MESSAGES_API = `${API_BASE}?resource=messages`;
 const EMPLOYER_ID = '6';
 
-const jobsInfo = Object.fromEntries(
-  allJobs.map(job => [job.id, { id: job.id, title: job.title, company: job.company }])
-);
-
 const Chat = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,9 +30,8 @@ const Chat = () => {
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewTime, setInterviewTime] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [jobInfo, setJobInfo] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const jobInfo = id ? jobsInfo[Number(id)] : null;
   
   const urlParams = new URLSearchParams(window.location.search);
   const otherUserId = urlParams.get('userId');
@@ -48,6 +43,21 @@ const Chat = () => {
       navigate('/login');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    const loadJob = async () => {
+      if (!id) return;
+      const dbJob = await loadJobByIdFromDatabase(id);
+      if (dbJob) {
+        setJobInfo({
+          id: dbJob.id,
+          title: dbJob.title,
+          company: dbJob.company
+        });
+      }
+    };
+    loadJob();
+  }, [id]);
 
   useEffect(() => {
     const loadMessages = async () => {
