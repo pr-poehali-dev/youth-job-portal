@@ -11,7 +11,7 @@ import ResponsesTab, { ResponseData } from '@/components/employer/ResponsesTab';
 import InterviewsTab, { InterviewData } from '@/components/employer/InterviewsTab';
 import VacanciesTab from '@/components/employer/VacanciesTab';
 import CandidatesTab from '@/components/employer/CandidatesTab';
-import { loadJobsFromDatabase, loadResponsesFromDatabase } from '@/utils/syncData';
+import { loadJobsFromDatabase, loadApplicationsFromDatabase } from '@/utils/syncData';
 
 const EmployerProfile = () => {
   const { user, logout } = useAuth();
@@ -58,9 +58,9 @@ const EmployerProfile = () => {
         : loadedJobs.filter(job => job.employerId === user.id);
       const employerJobIds = employerJobs.map(job => job.id);
 
-      const dbResponses = await loadResponsesFromDatabase();
+      const dbResponses = await loadApplicationsFromDatabase();
       const relevantResponses = dbResponses.filter((r: any) => 
-        employerJobIds.includes(parseInt(r.jobId))
+        employerJobIds.includes(parseInt(r.job_id))
       );
       setResponses(relevantResponses);
 
