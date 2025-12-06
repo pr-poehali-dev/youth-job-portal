@@ -145,7 +145,7 @@ const Vacancies = () => {
                 onClick={() => setSelectedType(type)}
                 size="sm"
               >
-                {type}
+                Premium
               </Button>
             ))}
           </div>
