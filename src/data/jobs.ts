@@ -1,5 +1,5 @@
 export interface Job {
-  id: number;
+  id: number | string;
   title: string;
   company: string;
   location: string;
@@ -10,6 +10,15 @@ export interface Job {
   coordinates: [number, number];
   isPremium?: boolean;
   employerId?: string;
+  employerEmail?: string;
+  description?: string;
+  requirements?: string[];
+  responsibilities?: string[];
+  conditions?: string[];
+  contact?: {
+    phone: string;
+    email: string;
+  };
 }
 
 export interface JobDetails extends Job {

@@ -17,15 +17,17 @@ const JobDetails = () => {
   useEffect(() => {
     if (!id) return;
     
-    const jobId = Number(id);
+    // Try both number and string ID formats
+    const jobIdNum = Number(id);
+    const jobIdStr = id;
     
-    if (jobsDetails[jobId]) {
-      setJob(jobsDetails[jobId]);
+    if (jobsDetails[jobIdNum]) {
+      setJob(jobsDetails[jobIdNum]);
     } else {
       const stored = localStorage.getItem('jobs');
       if (stored) {
         const allJobs: Job[] = JSON.parse(stored);
-        const foundJob = allJobs.find(j => j.id === jobId);
+        const foundJob = allJobs.find(j => j.id === jobIdNum || j.id.toString() === jobIdStr);
         
         if (foundJob) {
           const jobDetail: JobDetailsType = {
