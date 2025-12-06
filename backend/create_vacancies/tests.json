@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Create 15 vacancies",
+    "request": {
+      "method": "POST"
+    },
+    "expected": {
+      "status": 200
+    }
+  }
+]
