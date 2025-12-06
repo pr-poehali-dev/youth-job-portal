@@ -147,18 +147,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const registerEmployer = async (name: string, email: string, password: string, companyName: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=employers', {
+      console.log('🚀 Регистрация работодателя через API:', { name, email, companyName });
+      
+      const response = await fetch('https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523?resource=users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, companyName })
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name, 
+          age: 25,
+          phone: '',
+          role: 'employer'
+        })
       });
 
       if (!response.ok) {
-        console.error('Employer registration failed:', response.status);
+        const errorData = await response.json();
+        console.error('❌ Ошибка регистрации работодателя:', errorData);
         return false;
       }
 
       const data = await response.json();
+      console.log('✅ Регистрация работодателя успешна:', data);
+      
       const userToSet = {
         id: data.id,
         name,
@@ -175,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return true;
     } catch (error) {
-      console.error('Employer registration error:', error);
+      console.error('❌ Критическая ошибка при регистрации работодателя:', error);
       return false;
     }
   };
