@@ -18,6 +18,7 @@ interface Message {
 }
 
 const MESSAGES_API = 'https://functions.poehali.dev/fe0b272c-332c-4195-a2f5-7d1316c93d7c';
+const EMPLOYER_ID = '6';
 
 const jobsInfo = Object.fromEntries(
   allJobs.map(job => [job.id, { id: job.id, title: job.title, company: job.company }])
@@ -58,7 +59,7 @@ const Chat = () => {
           params.append('receiver_id', user.id);
         } else {
           params.append('sender_id', user.id);
-          params.append('receiver_id', 'employer_admin');
+          params.append('receiver_id', EMPLOYER_ID);
         }
         
         const response = await fetch(`${MESSAGES_API}?${params.toString()}`);
@@ -95,7 +96,7 @@ const Chat = () => {
     if (!inputValue.trim() || !user) return;
 
     try {
-      const receiverId = user.role === 'employer' ? chatPartnerId : 'employer_admin';
+      const receiverId = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
       
       const response = await fetch(MESSAGES_API, {
         method: 'POST',
@@ -117,7 +118,7 @@ const Chat = () => {
           params.append('receiver_id', user.id);
         } else {
           params.append('sender_id', user.id);
-          params.append('receiver_id', 'employer_admin');
+          params.append('receiver_id', EMPLOYER_ID);
         }
         
         const refreshResponse = await fetch(`${MESSAGES_API}?${params.toString()}`);
@@ -187,7 +188,7 @@ const Chat = () => {
     if (!user) return;
 
     try {
-      const receiverId = user.role === 'employer' ? chatPartnerId : 'employer_admin';
+      const receiverId = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
       
       await fetch(MESSAGES_API, {
         method: 'POST',

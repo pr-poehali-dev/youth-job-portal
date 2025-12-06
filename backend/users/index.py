@@ -36,7 +36,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cur.execute("""
                 SELECT id, email, full_name, 
                        EXTRACT(YEAR FROM AGE(date_of_birth))::int as age,
-                       phone, test_result, created_at
+                       phone, test_result, role, created_at
                 FROM t_p86122027_youth_job_portal.users
                 ORDER BY created_at DESC
             """)
@@ -51,8 +51,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'age': row[3],
                     'phone': row[4],
                     'testResult': row[5],
+                    'role': row[6] if row[6] else 'user',
                     'completedTest': bool(row[5]),
-                    'createdAt': row[6].isoformat() if row[6] else None
+                    'createdAt': row[7].isoformat() if row[7] else None
                 })
             
             return {
@@ -69,6 +70,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             name = str(body_data.get('name', '')).replace("'", "''")
             age = body_data.get('age', 0)
             phone = str(body_data.get('phone', '')).replace("'", "''")
+            role = str(body_data.get('role', 'user')).replace("'", "''")
             
             print(f"Attempting registration for email: {email}")
             
@@ -95,8 +97,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             cur.execute(f"""
                 INSERT INTO t_p86122027_youth_job_portal.users 
-                (email, password_hash, full_name, date_of_birth, phone, created_at, updated_at)
-                VALUES ('{email}', '{password}', '{name}', '{date_of_birth}', '{phone}', NOW(), NOW())
+                (email, password_hash, full_name, date_of_birth, phone, role, created_at, updated_at)
+                VALUES ('{email}', '{password}', '{name}', '{date_of_birth}', '{phone}', '{role}', NOW(), NOW())
                 RETURNING id
             """)
             
@@ -114,6 +116,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'name': name,
                     'age': age,
                     'phone': phone,
+                    'role': role,
                     'completedTest': False
                 }),
                 'isBase64Encoded': False
