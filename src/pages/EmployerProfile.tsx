@@ -58,19 +58,24 @@ const EmployerProfile = () => {
 
       const dbResponses = await loadApplicationsFromDatabase();
       const relevantResponses = dbResponses
-        .filter((r: any) => employerJobIds.includes(String(r.job_id)))
+        .filter((r: any) => {
+          const jobIdFromResponse = r.jobId || r.job_id;
+          return employerJobIds.includes(String(jobIdFromResponse));
+        })
         .map((r: any) => {
-          const job = loadedJobs.find(j => String(j.id) === String(r.job_id));
+          const jobIdFromResponse = r.jobId || r.job_id;
+          const job = loadedJobs.find(j => String(j.id) === String(jobIdFromResponse));
           return {
-            userId: r.user_id,
-            userName: r.user_name,
-            userEmail: r.user_email,
-            userAge: r.user_age,
-            jobId: r.job_id,
+            userId: r.userId || r.user_id,
+            userName: r.userName || r.user_name,
+            userEmail: r.userEmail || r.user_email,
+            userAge: r.userAge || r.user_age,
+            jobId: jobIdFromResponse,
             jobTitle: job?.title || 'Вакансия',
-            timestamp: new Date(r.created_at).getTime()
+            timestamp: r.createdAt ? new Date(r.createdAt).getTime() : (r.created_at ? new Date(r.created_at).getTime() : Date.now())
           };
         });
+      console.log('📋 Отклики после фильтрации:', relevantResponses.length);
       setResponses(relevantResponses);
 
       try {

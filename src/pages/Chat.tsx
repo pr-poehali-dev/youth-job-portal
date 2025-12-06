@@ -80,11 +80,11 @@ const Chat = () => {
           
           const formattedMessages = dbMessages.map((msg: any) => ({
             id: msg.id,
-            text: msg.message_text,
-            senderId: msg.sender_id,
-            senderName: msg.sender_id === user.id ? user.name : 'Работодатель',
-            senderRole: msg.sender_id === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
-            timestamp: new Date(msg.created_at).getTime()
+            text: msg.messageText || msg.message_text,
+            senderId: msg.senderId || msg.sender_id,
+            senderName: (msg.senderId || msg.sender_id) === user.id ? user.name : 'Работодатель',
+            senderRole: (msg.senderId || msg.sender_id) === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
+            timestamp: new Date(msg.createdAt || msg.created_at).getTime()
           }));
           
           setMessages(formattedMessages);
@@ -139,11 +139,11 @@ const Chat = () => {
           
           const formattedMessages = dbMessages.map((msg: any) => ({
             id: msg.id,
-            text: msg.message_text,
-            senderId: msg.sender_id,
-            senderName: msg.sender_id === user.id ? user.name : 'Работодатель',
-            senderRole: msg.sender_id === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
-            timestamp: new Date(msg.created_at).getTime()
+            text: msg.messageText || msg.message_text,
+            senderId: msg.senderId || msg.sender_id,
+            senderName: (msg.senderId || msg.sender_id) === user.id ? user.name : 'Работодатель',
+            senderRole: (msg.senderId || msg.sender_id) === user.id ? (user.role === 'employer' ? 'employer' : 'user') : 'employer',
+            timestamp: new Date(msg.createdAt || msg.created_at).getTime()
           }));
           
           setMessages(formattedMessages);
