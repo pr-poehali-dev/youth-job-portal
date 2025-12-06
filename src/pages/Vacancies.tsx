@@ -10,7 +10,7 @@ import VacancyMap from '@/components/VacancyMap';
 import { Job } from '@/data/jobs';
 import { loadJobsFromDatabase } from '@/utils/syncData';
 import '@/utils/migrateToDb';
-import '@/utils/restoreDefaultJobs';
+import '@/utils/runRestore';
 
 const Vacancies = () => {
   const { user } = useAuth();
