@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { saveApplicationToDatabase, loadApplicationsFromDatabase } from '@/utils/syncData';
+import { saveApplicationToDatabase, loadApplicationsFromDatabase, loadJobsFromDatabase } from '@/utils/syncData';
 
 interface Activity {
   id: string;
@@ -32,17 +32,23 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     if (user) {
-      loadApplicationsFromDatabase(user.id).then(applications => {
+      loadApplicationsFromDatabase(user.id).then(async applications => {
+        const jobs = await loadJobsFromDatabase();
+        const jobsMap = new Map(jobs.map(j => [j.id.toString(), j]));
+        
         const responseActivities = applications
           .filter(app => app.status === 'pending' || app.status === 'accepted' || app.status === 'rejected')
-          .map(app => ({
-            id: app.id,
-            action: 'response' as const,
-            jobId: parseInt(app.job_id),
-            jobTitle: '',
-            company: '',
-            timestamp: new Date(app.created_at).getTime()
-          }));
+          .map(app => {
+            const job = jobsMap.get(app.job_id);
+            return {
+              id: app.id,
+              action: 'response' as const,
+              jobId: parseInt(app.job_id),
+              jobTitle: job?.title || 'Вакансия',
+              company: job?.company || 'Компания',
+              timestamp: new Date(app.created_at).getTime()
+            };
+          });
         
         setActivities(responseActivities);
       });
@@ -148,16 +154,22 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const refreshApplications = async () => {
     if (!user) return;
     const applications = await loadApplicationsFromDatabase(user.id);
+    const jobs = await loadJobsFromDatabase();
+    const jobsMap = new Map(jobs.map(j => [j.id.toString(), j]));
+    
     const responseActivities = applications
       .filter(app => app.status === 'pending' || app.status === 'accepted' || app.status === 'rejected')
-      .map(app => ({
-        id: app.id,
-        action: 'response' as const,
-        jobId: parseInt(app.job_id),
-        jobTitle: '',
-        company: '',
-        timestamp: new Date(app.created_at).getTime()
-      }));
+      .map(app => {
+        const job = jobsMap.get(app.job_id);
+        return {
+          id: app.id,
+          action: 'response' as const,
+          jobId: parseInt(app.job_id),
+          jobTitle: job?.title || 'Вакансия',
+          company: job?.company || 'Компания',
+          timestamp: new Date(app.created_at).getTime()
+        };
+      });
     setActivities(responseActivities);
   };
 

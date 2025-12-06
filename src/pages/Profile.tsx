@@ -45,6 +45,14 @@ const Profile = () => {
     navigate('/');
   };
 
+  const handleClearCache = () => {
+    if (confirm('Очистить весь кэш браузера? Вам нужно будет войти заново.')) {
+      localStorage.clear();
+      alert('✅ Кэш очищен! Сейчас перенаправлю на страницу входа.');
+      window.location.href = '/login';
+    }
+  };
+
   const statsData = getStats();
   const stats = [
     { label: 'Откликов', value: statsData.responses.toString(), icon: 'Send', color: 'text-blue-500' },
@@ -99,6 +107,10 @@ const Profile = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold">Успех 14</Link>
           <div className="flex gap-2">
+            <Button onClick={handleClearCache} variant="ghost" size="sm" title="Очистить кэш">
+              <Icon name="RotateCcw" size={16} className="mr-2" />
+              Очистить кэш
+            </Button>
             <Button onClick={() => navigate('/login')} variant="outline" size="sm">
               <Icon name="UserPlus" size={16} className="mr-2" />
               Сменить аккаунт
