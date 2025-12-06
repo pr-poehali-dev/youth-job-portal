@@ -36,7 +36,7 @@ const Chat = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const otherUserId = urlParams.get('userId');
   
-  const chatPartnerId = user?.role === 'employer' ? otherUserId : user?.id;
+  const chatPartnerId = user?.role === 'employer' ? otherUserId : EMPLOYER_ID;
 
   useEffect(() => {
     if (!user) {
@@ -65,11 +65,9 @@ const Chat = () => {
       
       try {
         const params = new URLSearchParams();
-        const userId1 = user.role === 'employer' ? user.id : user.id;
-        const userId2 = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
         
-        params.append('sender_id', userId1);
-        params.append('receiver_id', userId2);
+        params.append('sender_id', user.id);
+        params.append('receiver_id', chatPartnerId!);
         params.append('job_id', id);
         
         const response = await fetch(`${MESSAGES_API}&${params.toString()}`);
@@ -123,11 +121,9 @@ const Chat = () => {
         setInputValue('');
         
         const params = new URLSearchParams();
-        const userId1 = user.role === 'employer' ? user.id : user.id;
-        const userId2 = user.role === 'employer' ? chatPartnerId : EMPLOYER_ID;
         
-        params.append('sender_id', userId1);
-        params.append('receiver_id', userId2);
+        params.append('sender_id', user.id);
+        params.append('receiver_id', chatPartnerId!);
         if (id) params.append('job_id', id);
         
         const refreshResponse = await fetch(`${MESSAGES_API}&${params.toString()}`);
