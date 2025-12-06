@@ -39,38 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-    
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    let needsUpdate = false;
-    
-    // Создаём аккаунт работодателя если его нет
-    const employerExists = users.some((u: any) => u.email === 'mininkonstantin@gmail.com');
-    
-    if (!employerExists) {
-      const employerUser = {
-        id: 'employer_admin',
-        name: 'Администратор',
-        email: 'mininkonstantin@gmail.com',
-        password: 'admin123',
-        age: 25,
-        completedTest: true,
-        role: 'employer'
-      };
-      users.push(employerUser);
-      needsUpdate = true;
-    }
-    
-    // Добавляем role для старых пользователей
-    users.forEach((u: any) => {
-      if (!u.role) {
-        u.role = u.email === 'mininkonstantin@gmail.com' ? 'employer' : 'user';
-        needsUpdate = true;
-      }
-    });
-    
-    if (needsUpdate) {
-      localStorage.setItem('users', JSON.stringify(users));
-    }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {

@@ -1,23 +1,84 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useActivity } from '@/contexts/ActivityContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { useState, useEffect } from 'react';
+import { loadJobByIdFromDatabase } from '@/utils/syncData';
+
+const API_BASE = 'https://functions.poehali.dev/81ba1a01-47ea-40ac-9ce8-1dc2aa32d523';
+const MESSAGES_API = `${API_BASE}?resource=messages`;
+
+interface Conversation {
+  id: string;
+  otherUserId: string;
+  otherUserName: string;
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  lastMessage: string;
+  timestamp: number;
+}
 
 const MyChats = () => {
   const { user } = useAuth();
-  const { activities } = useActivity();
   const navigate = useNavigate();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
 
   if (!user) {
     navigate('/login');
     return null;
   }
 
-  const responseActivities = activities
-    .filter(a => a.action === 'response')
-    .sort((a, b) => b.timestamp - a.timestamp);
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const response = await fetch(`${MESSAGES_API}&user_id=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          const convos = data.conversations || [];
+          
+          const conversationsWithJobs = await Promise.all(
+            convos.map(async (conv: any) => {
+              const job = conv.jobId ? await loadJobByIdFromDatabase(conv.jobId) : null;
+              
+              const usersResponse = await fetch(`${API_BASE}?resource=users`);
+              let otherUserName = 'Пользователь';
+              if (usersResponse.ok) {
+                const usersData = await usersResponse.json();
+                const otherUser = usersData.users?.find((u: any) => u.id === conv.otherUserId);
+                if (otherUser) {
+                  otherUserName = otherUser.name;
+                }
+              }
+              
+              return {
+                id: conv.id,
+                otherUserId: conv.otherUserId,
+                otherUserName,
+                jobId: conv.jobId || '',
+                jobTitle: job?.title || 'Вакансия',
+                company: job?.company || 'Компания',
+                lastMessage: conv.messageText || '',
+                timestamp: conv.createdAt ? new Date(conv.createdAt).getTime() : Date.now()
+              };
+            })
+          );
+          
+          setConversations(conversationsWithJobs);
+        }
+      } catch (error) {
+        console.error('Error loading conversations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadConversations();
+    const interval = setInterval(loadConversations, 5000);
+    return () => clearInterval(interval);
+  }, [user.id]);
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -61,26 +122,39 @@ const MyChats = () => {
             <h1 className="text-3xl font-bold">Мои переписки</h1>
           </div>
 
-          {responseActivities.length > 0 ? (
+          {loading ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">Загрузка переписок...</p>
+              </CardContent>
+            </Card>
+          ) : conversations.length > 0 ? (
             <div className="space-y-3">
-              {responseActivities.map((activity) => (
+              {conversations.map((conv) => (
                 <Card 
-                  key={activity.id}
+                  key={conv.id}
                   className="hover:shadow-md transition cursor-pointer"
-                  onClick={() => navigate(`/chat/${activity.jobId}`)}
+                  onClick={() => {
+                    if (user.role === 'employer') {
+                      navigate(`/chat/${conv.jobId}?userId=${conv.otherUserId}`);
+                    } else {
+                      navigate(`/chat/${conv.jobId}`);
+                    }
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <div className="bg-primary/10 p-3 rounded-full">
-                        <Icon name="Building2" size={24} className="text-primary" />
+                        <Icon name="MessageSquare" size={24} className="text-primary" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{activity.company}</h3>
-                        <p className="text-sm text-muted-foreground">{activity.jobTitle}</p>
+                        <h3 className="font-semibold text-lg">{user.role === 'employer' ? conv.otherUserName : conv.company}</h3>
+                        <p className="text-sm text-muted-foreground">{conv.jobTitle}</p>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">{conv.lastMessage}</p>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-muted-foreground mb-1">
-                          {formatTime(activity.timestamp)}
+                          {formatTime(conv.timestamp)}
                         </div>
                         <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
                       </div>
