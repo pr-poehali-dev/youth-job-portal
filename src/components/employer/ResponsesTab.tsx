@@ -18,7 +18,7 @@ export interface ResponseData {
   userName: string;
   userEmail: string;
   userAge: number;
-  jobId: number;
+  jobId: number | string;
   jobTitle: string;
   timestamp: number;
   testScore?: number;
@@ -27,7 +27,7 @@ export interface ResponseData {
 
 interface ResponsesTabProps {
   responses: ResponseData[];
-  responsesByJob: Record<number, ResponseData[]>;
+  responsesByJob: Record<number | string, ResponseData[]>;
   formatTime: (timestamp: number) => string;
 }
 

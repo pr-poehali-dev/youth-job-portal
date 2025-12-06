@@ -54,12 +54,23 @@ const EmployerProfile = () => {
       const employerJobs = user.email === 'mininkonstantin@gmail.com'
         ? loadedJobs
         : loadedJobs.filter(job => job.employerId === user.id);
-      const employerJobIds = employerJobs.map(job => job.id);
+      const employerJobIds = employerJobs.map(job => String(job.id));
 
       const dbResponses = await loadApplicationsFromDatabase();
-      const relevantResponses = dbResponses.filter((r: any) => 
-        employerJobIds.includes(parseInt(r.job_id))
-      );
+      const relevantResponses = dbResponses
+        .filter((r: any) => employerJobIds.includes(String(r.job_id)))
+        .map((r: any) => {
+          const job = loadedJobs.find(j => String(j.id) === String(r.job_id));
+          return {
+            userId: r.user_id,
+            userName: r.user_name,
+            userEmail: r.user_email,
+            userAge: r.user_age,
+            jobId: r.job_id,
+            jobTitle: job?.title || 'Вакансия',
+            timestamp: new Date(r.created_at).getTime()
+          };
+        });
       setResponses(relevantResponses);
 
       try {
@@ -68,7 +79,7 @@ const EmployerProfile = () => {
           const data = await interviewsResponse.json();
           const allDbInterviews = data.interviews || [];
           const employerInterviews = allDbInterviews.filter((interview: any) => 
-            employerJobIds.includes(parseInt(interview.jobId))
+            employerJobIds.includes(String(interview.jobId))
           );
           employerInterviews.sort((a: any, b: any) => b.timestamp - a.timestamp);
           setInterviews(employerInterviews);
@@ -120,7 +131,7 @@ const EmployerProfile = () => {
     }
     acc[response.jobId].push(response);
     return acc;
-  }, {} as Record<number, ResponseData[]>);
+  }, {} as Record<number | string, ResponseData[]>);
 
   const employerJobs = user.email === 'mininkonstantin@gmail.com'
     ? allJobs
