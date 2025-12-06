@@ -83,44 +83,72 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<boolean> => {
     try {
+      console.log('🚀 Попытка регистрации:', { name, email, age, phone });
+      
       const response = await fetch('https://functions.poehali.dev/c65b8db3-6abf-446e-a273-24381014b009', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name, age, phone: phone || '' })
       });
 
+      console.log('📡 Ответ сервера:', response.status, response.statusText);
+
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Registration failed:', errorData);
+        console.error('❌ Регистрация не удалась:', errorData);
+        
+        if (errorData.error === 'Email already exists') {
+          console.log('⚠️ Email уже существует в базе данных');
+        }
         return false;
       }
 
       const data = await response.json();
-      console.log('User registered successfully:', data);
+      console.log('✅ Пользователь успешно зарегистрирован в БД:', data);
       
       const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const newUser = {
-        id: data.id,
-        name,
-        email,
-        password,
-        age,
-        phone,
-        completedTest: false,
-        role: 'user' as const,
-        subscription: null
-      };
+      
+      const existingIndex = users.findIndex((u: any) => u.email === email);
+      if (existingIndex !== -1) {
+        console.log('🔄 Обновляю существующего пользователя в localStorage');
+        users[existingIndex] = {
+          id: data.id,
+          name,
+          email,
+          password,
+          age,
+          phone,
+          completedTest: false,
+          role: 'user' as const,
+          subscription: null
+        };
+      } else {
+        console.log('➕ Добавляю нового пользователя в localStorage');
+        const newUser = {
+          id: data.id,
+          name,
+          email,
+          password,
+          age,
+          phone,
+          completedTest: false,
+          role: 'user' as const,
+          subscription: null
+        };
+        users.push(newUser);
+      }
 
-      users.push(newUser);
       localStorage.setItem('users', JSON.stringify(users));
 
-      const { password: _, ...userWithoutPassword } = newUser;
+      const userToSet = users.find((u: any) => u.email === email);
+      const { password: _, ...userWithoutPassword } = userToSet;
       setUser(userWithoutPassword);
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       
+      console.log('✅ Регистрация завершена успешно');
       return true;
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('❌ Ошибка при регистрации:', error);
       return false;
     }
   };
