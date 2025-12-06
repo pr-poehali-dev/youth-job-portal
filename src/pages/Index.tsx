@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen">
@@ -13,12 +19,18 @@ const Index = () => {
           <Link to="/" className="text-2xl font-bold">Успех 14</Link>
           <div className="flex gap-3">
             {user ? (
-              <Link to={user.role === 'employer' ? '/employer-profile' : '/profile'}>
-                <Button>
-                  <Icon name="User" size={16} className="mr-2" />
-                  Личный кабинет
+              <>
+                <Link to={user.role === 'employer' ? '/employer-profile' : '/profile'}>
+                  <Button>
+                    <Icon name="User" size={16} className="mr-2" />
+                    Личный кабинет
+                  </Button>
+                </Link>
+                <Button variant="outline" onClick={handleLogout}>
+                  <Icon name="LogOut" size={16} className="mr-2" />
+                  Выйти
                 </Button>
-              </Link>
+              </>
             ) : (
               <>
                 <Link to="/login">
