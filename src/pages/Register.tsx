@@ -26,11 +26,11 @@ const Register = () => {
       return;
     }
 
-    const success = await register(name, email, password, ageNum, phone);
-    if (success) {
+    const result = await register(name, email, password, ageNum, phone);
+    if (result.success) {
       navigate('/user-subscription');
     } else {
-      setError('Пользователь с таким email уже существует');
+      setError(result.error || 'Ошибка при регистрации');
     }
   };
 

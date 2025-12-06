@@ -14,10 +14,15 @@ interface User {
   companyName?: string;
 }
 
+interface RegisterResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string, age: number, phone?: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string, age: number, phone?: string) => Promise<RegisterResult>;
   registerEmployer: (name: string, email: string, password: string, companyName: string) => Promise<boolean>;
   logout: () => void;
   updateTestResult: (result: string) => void;
@@ -81,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string, age: number, phone?: string): Promise<RegisterResult> => {
     try {
       console.log('🚀 Попытка регистрации:', { name, email, age, phone });
       
@@ -99,8 +104,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (errorData.error === 'Email already exists') {
           console.log('⚠️ Email уже существует в базе данных');
+          return { success: false, error: 'Пользователь с таким email уже существует' };
         }
-        return false;
+        return { success: false, error: `Ошибка сервера: ${response.status}` };
       }
 
       const data = await response.json();
@@ -146,10 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(userWithoutPassword));
       
       console.log('✅ Регистрация завершена успешно');
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('❌ Ошибка при регистрации:', error);
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
+      return { success: false, error: `Ошибка сети: ${errorMessage}` };
     }
   };
 
