@@ -782,6 +782,45 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps(message),
                     'isBase64Encoded': False
                 }
+            
+            if method == 'DELETE':
+                body_data = json.loads(event.get('body', '{}'))
+                message_id = str(body_data.get('id', '')).replace("'", "''")
+                
+                if not message_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Missing required field: id'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Deleting message {message_id}")
+                
+                cur.execute(f"""
+                    DELETE FROM t_p86122027_youth_job_portal.messages 
+                    WHERE id = '{message_id}'
+                """)
+                
+                deleted_count = cur.rowcount
+                conn.commit()
+                
+                if deleted_count == 0:
+                    return {
+                        'statusCode': 404,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Message not found'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Message {message_id} deleted successfully")
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({'message': 'Message deleted successfully'}),
+                    'isBase64Encoded': False
+                }
         
         # === INTERVIEWS API ===
         elif resource == 'interviews':
@@ -874,6 +913,45 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'jobId': job_id,
                         'createdAt': created_at.isoformat() if created_at else None
                     }),
+                    'isBase64Encoded': False
+                }
+            
+            if method == 'DELETE':
+                body_data = json.loads(event.get('body', '{}'))
+                interview_id = str(body_data.get('id', '')).replace("'", "''")
+                
+                if not interview_id:
+                    return {
+                        'statusCode': 400,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Missing required field: id'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Deleting interview {interview_id}")
+                
+                cur.execute(f"""
+                    DELETE FROM t_p86122027_youth_job_portal.interviews 
+                    WHERE id = {interview_id}
+                """)
+                
+                deleted_count = cur.rowcount
+                conn.commit()
+                
+                if deleted_count == 0:
+                    return {
+                        'statusCode': 404,
+                        'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'Interview not found'}),
+                        'isBase64Encoded': False
+                    }
+                
+                print(f"Interview {interview_id} deleted successfully")
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                    'body': json.dumps({'message': 'Interview deleted successfully'}),
                     'isBase64Encoded': False
                 }
         

@@ -253,6 +253,31 @@ const Chat = () => {
     }
   };
 
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Удалить это сообщение?')) return;
+
+    try {
+      console.log('🗑️ Удаление сообщения:', messageId);
+      const response = await fetch(MESSAGES_API, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: messageId })
+      });
+
+      if (response.ok) {
+        console.log('✅ Сообщение удалено');
+        setMessages(messages.filter(m => m.id !== messageId));
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Ошибка удаления:', errorData);
+        alert('Не удалось удалить сообщение');
+      }
+    } catch (error) {
+      console.error('❌ Критическая ошибка при удалении:', error);
+      alert('Ошибка при удалении сообщения');
+    }
+  };
+
   if (!user) return null;
 
   if (!jobInfo) {
@@ -357,25 +382,45 @@ const Chat = () => {
             messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex group ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                    message.senderId === user.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <p className="text-xs font-medium mb-1 opacity-70">
-                    {message.senderName}
-                  </p>
-                  <p className="break-words">{message.text}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {new Date(message.timestamp).toLocaleTimeString('ru-RU', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
+                <div className="flex items-start gap-2">
+                  {message.senderId === user.id && (
+                    <button
+                      onClick={() => deleteMessage(message.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                      title="Удалить сообщение"
+                    >
+                      <Icon name="Trash2" size={16} className="text-destructive" />
+                    </button>
+                  )}
+                  <div
+                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                      message.senderId === user.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <p className="text-xs font-medium mb-1 opacity-70">
+                      {message.senderName}
+                    </p>
+                    <p className="break-words">{message.text}</p>
+                    <p className="text-xs opacity-70 mt-1">
+                      {new Date(message.timestamp).toLocaleTimeString('ru-RU', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  {message.senderId !== user.id && (
+                    <button
+                      onClick={() => deleteMessage(message.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                      title="Удалить сообщение"
+                    >
+                      <Icon name="Trash2" size={16} className="text-destructive" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))
